@@ -1,0 +1,10 @@
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+
+DB_COLLECTION_NAME_PROJECTS = config["DB_COLLECTION_NAME_PROJECTS"]
+DB_COLLECTION_NAME_STATEMENTS = config["DB_COLLECTION_NAME_STATEMENTS"]
+DB_COLLECTION_NAME_USERS = config["DB_COLLECTION_NAME_USERS"]
+DB_CONNECTION_STRING = config["DB_CONNECTION_STRING"]
+DB_NAME = config["DB_NAME"]
+# TODO Mehr Variablen einfügen
