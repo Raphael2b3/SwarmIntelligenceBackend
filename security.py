@@ -6,8 +6,8 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Annotated
 
-import Database.MongoDB.controller as mdbController
-from Models.User import User
+from Database.MongoDB import projectController, statementController, userController
+from Database.Models.user import User
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -20,8 +20,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: str | None = None
-    password: str | None = None
+    username: str | None = None
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -38,7 +37,8 @@ def get_password_hash(password):
 
 
 def authenticate_user(userdata):
-    user = mdbController.get_user(userdata.username)
+
+    user = userController.get_user(userdata.username)
     if not user:
         return False
     if not verify_password(userdata.password, user.hashed_password):
@@ -71,7 +71,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = mdbController.get_user(username=token_data.username)
+    user = userController.get_user(token_data)
     if user is None:
         raise credentials_exception
     return user
