@@ -9,7 +9,7 @@ class ProjectDB:
     connections: list[ObjectId]
 
 
-class Project:
+class Project(BaseModel):
     _id: str
     name: str
     statements: list[str]

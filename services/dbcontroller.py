@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from pandas import DataFrame
 from const import DB_CONNECTION_STRING, DB_NAME
 
+
 def get_database():
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
 
@@ -27,6 +28,6 @@ def find_document(collection, q: dict):
     return db[collection].find_one(q)
 
 
-def find_many_document(collection,q: dict = None, max_results=1, skip=0):
+def find_many_document(collection, q: dict = None, max_results=1, skip=0):
     return db[collection].find(q, limit=max_results, skip=skip)
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Annotated
 
+import controller.users
 from controller import users
 from models.user import User
 
@@ -38,7 +39,7 @@ def get_password_hash(password):
 
 
 def authenticate_user(userdata):
-    user = userController.get_user(userdata.username)
+    user = controller.users.get_one(userdata.username)
     if not user:
         return False
     if not verify_password(userdata.password, user.hashed_password):

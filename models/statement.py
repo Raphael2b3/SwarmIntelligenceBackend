@@ -2,7 +2,7 @@ from bson import ObjectId
 from pydantic import BaseModel
 
 
-class Statement:
+class Statement(BaseModel):
     _id: str
     value: str
 

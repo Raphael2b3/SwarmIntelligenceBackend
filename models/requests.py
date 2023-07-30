@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class SearchRequest:
+class SearchRequest(BaseModel):
     _id: str
     q: str
     depth: int = 4
@@ -10,6 +10,6 @@ class SearchRequest:
     max: int = 5
 
 
-class CreateUserRequest:
+class CreateUserRequest(BaseModel):
     username: str
     password: str

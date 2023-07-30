@@ -2,7 +2,7 @@ from bson import ObjectId
 from pydantic import BaseModel
 
 
-class User:
+class User(BaseModel):
     _id: str
     username: str
     password: str
