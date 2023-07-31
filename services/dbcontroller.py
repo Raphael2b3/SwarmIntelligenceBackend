@@ -1,7 +1,9 @@
+import pymongo
 from pydantic import BaseModel
 from pymongo import MongoClient
 from pandas import DataFrame
-from const import DB_CONNECTION_STRING, DB_NAME
+from const import DB_CONNECTION_STRING, DB_NAME, DB_COLLECTION_NAME_CONNECTIONS, DB_COLLECTION_NAME_PROJECTS, \
+    DB_COLLECTION_NAME_STATEMENTS, DB_COLLECTION_NAME_USERS
 
 
 def get_database():
@@ -15,19 +17,10 @@ def get_database():
 
 db = get_database()
 
+connectionsDB = db[DB_COLLECTION_NAME_CONNECTIONS]
+connectionsDB.create_index([("hash", pymongo.ASCENDING)])
 
-def create_document(collection, document: BaseModel):
-    return db[collection].insert_one(document.model_dump())
-
-
-def delete_document(collection, q: dict):
-    return db[collection].delete_one(q)
-
-
-def find_document(collection, q: dict):
-    return db[collection].find_one(q)
-
-
-def find_many_document(collection, q: dict = None, max_results=1, skip=0):
-    return db[collection].find(q, limit=max_results, skip=skip)
+projectsDB = db[DB_COLLECTION_NAME_PROJECTS]
+statementsDB = db[DB_COLLECTION_NAME_STATEMENTS]
+usersDB = db[DB_COLLECTION_NAME_USERS]
 

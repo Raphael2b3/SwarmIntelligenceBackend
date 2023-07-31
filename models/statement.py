@@ -1,12 +1,9 @@
 from bson import ObjectId
 from pydantic import BaseModel
 
-
-class Statement(BaseModel):
-    _id: str
-    value: str
+from models.helper_definitions import  CustomBaseModel
 
 
-class StatementDB(BaseModel):
+class Statement(CustomBaseModel):
     _id: ObjectId
     value: str

@@ -72,7 +72,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = userController.get_user(token_data)
+    user = controller.users.get_one(token_data)
     if user is None:
         raise credentials_exception
     return user

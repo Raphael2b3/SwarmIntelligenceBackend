@@ -13,3 +13,11 @@ class SearchRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str
     password: str
+
+
+class CreateStatementRequest(BaseModel):
+    value: str
+    stm_stop: int
+    stm_type: str
+    weight: float
+

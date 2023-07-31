@@ -26,15 +26,6 @@ async def create_user(
     return 200 if result else 500
 
 
-@router.post("/select", response_model=user.User)
-async def select_user(
-        current_user: Annotated[user.User, Depends(get_current_active_user)],
-        form_data: Annotated[requests.SearchRequest, Depends()]):
-    print(f"SELECT USER \nBy: {current_user}\nBody: {form_data}")
-    result = db.users.get_one(form_data)
-    return result
-
-
 @router.post("/delete", response_model=user.User)
 async def delete_user(
         current_user: Annotated[user.User, Depends(get_current_active_user)],

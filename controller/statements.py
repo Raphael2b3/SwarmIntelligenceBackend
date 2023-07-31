@@ -1,9 +1,13 @@
+import models.requests as requests
 from const import DB_COLLECTION_NAME_STATEMENTS
 
 from services import dbcontroller
 
 
-def create(doc):
+def create(doc: requests.CreateStatementRequest):
+
+    stm = dbcontroller.create_document(document={"value":doc.value}, collection=DB_COLLECTION_NAME_STATEMENTS)
+
     return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_STATEMENTS)
 
 

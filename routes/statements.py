@@ -20,7 +20,7 @@ async def get_statement(
 @router.post("/create", response_model=statement.Statement)
 async def create_statement(
         current_user: Annotated[user.User, Depends(get_current_active_user)],
-        form_data: Annotated[requests.SearchRequest, Depends()]):
+        form_data: Annotated[requests.CreateStatementRequest, Depends()]):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {form_data}")
     result = db.statements.create(form_data)
     return result

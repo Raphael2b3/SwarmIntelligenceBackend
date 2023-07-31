@@ -1,16 +1,10 @@
 from bson import ObjectId
-from pydantic import BaseModel
+
+from models.helper_definitions import CustomBaseModel
 
 
-class ProjectDB:
+class Project(CustomBaseModel):
     _id: ObjectId
     name: str
     statements: list[ObjectId]
     connections: list[ObjectId]
-
-
-class Project(BaseModel):
-    _id: str
-    name: str
-    statements: list[str]
-    connections: list[str]

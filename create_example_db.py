@@ -1,10 +1,8 @@
-from controller import *
-from models.user import User, UserDB
-from models.statement import Statement, StatementDB
+from bson import ObjectId
+
+from models.connection import Connection
+from services.dbcontroller import connectionsDB
 
 if __name__ == '__main__':
-    users.create(UserDB(username="kokus", hashed_password="dfhdfkjghkjfdgkldf"))
-
-    statements.create(StatementDB(value="Wahrheiten sdsada Wahr"))
-    user = users.get({"username": "kokus"})
-    print(user)
+    #ObjectId("000000000000000000000000")
+    connectionsDB.insert_one(Connection(stm_start="000000000000000000000000").model_dump())

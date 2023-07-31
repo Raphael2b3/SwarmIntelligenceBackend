@@ -20,7 +20,7 @@ async def get(
 @router.post("/create", response_model=project.Project)
 async def create_project(
         current_user: Annotated[user.User, Depends(get_current_active_user)],
-        form_data: Annotated[requests.SearchRequest, Depends()]):
+        form_data: Annotated[project.Project, Depends()]):
     print(f"CREATE PROJECT \nBy: {current_user}\nBody: {form_data}")
     result = db.projects.create(form_data)
     return result
