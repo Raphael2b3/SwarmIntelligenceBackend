@@ -1,23 +1,33 @@
 import models.requests as requests
+from pydantic import BaseModel
+
+import models.statement
 from const import DB_COLLECTION_NAME_STATEMENTS
 
-from services import dbcontroller
+from services.dbcontroller import statementsDB
 
 
-def create(doc: requests.CreateStatementRequest):
+def create(doc: models.statement.Statement):
+    stm = statementsDB.insert_one(doc.model_dump())
 
-    stm = dbcontroller.create_document(document={"value":doc.value}, collection=DB_COLLECTION_NAME_STATEMENTS)
-
-    return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_STATEMENTS)
-
-
-def delete(doc):
-    return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_STATEMENTS)
+    return stm
 
 
-def get_many(doc):
-    return dbcontroller.find_many_document(DB_COLLECTION_NAME_STATEMENTS, doc)
+def delete(doc: models.statement.Statement):
+    return statementsDB.delete_one(doc.model_dump())
 
 
-def get_one(doc):
-    return dbcontroller.find_document(DB_COLLECTION_NAME_STATEMENTS, doc)
+class StatementQuery(BaseModel):
+    filter: models.statement.Statement
+    limit: int = 8
+    skip: int = 0
+    depth: int = 1
+    sort_method: str = None
+
+
+def get_many(doc: StatementQuery):
+    return statementsDB.find(**doc.model_dump())
+
+
+def get_one(doc: models.statement.Statement):
+    return statementsDB.find_one(doc.model_dump())

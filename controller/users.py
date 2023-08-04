@@ -1,20 +1,19 @@
 from const import DB_COLLECTION_NAME_USERS
 
-from services import dbcontroller
+from services.dbcontroller import usersDB
 
 
-"""def create(doc):
-    return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_USERS)
+def create(doc):
+    return usersDB.insert_one(document=doc)
 
 
 def delete(doc):
-    return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_USERS)
+    return usersDB.delete_one(document=doc)
 
 
 def get_one(doc):
-    return dbcontroller.find_document(DB_COLLECTION_NAME_USERS, doc)
+    return usersDB.find_one(doc)
 
 
 def get_many(doc):
-    return dbcontroller.find_many_document(DB_COLLECTION_NAME_USERS, doc)
-"""
+    return usersDB.find(doc)

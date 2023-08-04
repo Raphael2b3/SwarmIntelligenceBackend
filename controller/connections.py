@@ -1,36 +1,43 @@
 from bson import ObjectId
+from pydantic import BaseModel
+
 import models.connection
+
+from models.mongomodel import MongoModel
 from services.dbcontroller import projectsDB, connectionsDB
+
+debugprefix = "Connection-Controller "
 
 
 def create(doc: models.connection.Connection):
-    """
-    Connection erstellen:
+    print(debugprefix, "Create", doc.model_dump())
+    result = connectionsDB.insert_one(doc.model_dump())
+    print(result)
+    return result
 
-    1. Gucken ob das Projekt existiert
-    2. gucken ob die Connection schon existiert
-        - durch indexing in mongodb gehändelt
-    3. connection hinzufügen
-    :param doc:
-    :return:
-    """
-    # 1.
-    project = projectsDB.find_one({"_id": ObjectId(doc.projectId)})
-    if not project: raise Exception("Project doesnt exists")
-    connectionInstanceDB = models.connection.ConnectionDB(instance=doc)
 
-    res = connectionsDB.insert_one(connectionInstanceDB.to_dict())
-    connectionsDB.find_one({doc.model_dump()})
+def delete_globally(doc: models.connection.Connection):
+    print(debugprefix, "DeleteGlobally", doc.model_dump())
+    projectsDB.update_many({"connections": {"$contains": doc.id}}, {"connections":{"$pull":doc.id}})  # TODO
     return
 
 
-def delete(doc):
-    return dbcontroller.create_document(document=doc, collection=DB_COLLECTION_NAME_PROJECTS)
+class ConnectionQuery(BaseModel):
+    filter: models.connection.Connection
+    limit: int = 8
+    skip: int = 0
+    depth: int = 1
+    sort_method: str = None
 
 
-def get_many(doc):
-    return dbcontroller.find_many_document(DB_COLLECTION_NAME_PROJECTS, doc)
+def get_many(doc: ConnectionQuery):
+    """ # TODO Find every connection that match the filter: doc
+
+    :param doc:
+    :return:
+    """
+    return connectionsDB.find(*doc.model_dump(exclude_none=True))
 
 
-def get_one(doc):
-    return dbcontroller.find_document(DB_COLLECTION_NAME_PROJECTS, doc)
+def get_one(doc: models.connection.Connection):
+    return connectionsDB.find_one(doc.model_dump())

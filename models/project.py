@@ -1,10 +1,9 @@
 from bson import ObjectId
+from pydantic import BaseModel
 
-from models.helper_definitions import CustomBaseModel
+from models.mongomodel import MongoModel, PydanticObjectId
 
 
-class Project(CustomBaseModel):
-    _id: ObjectId
-    name: str
-    statements: list[ObjectId]
-    connections: list[ObjectId]
+class Project(MongoModel):
+    name: str = None
+    connections: list[PydanticObjectId]  = None

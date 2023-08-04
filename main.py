@@ -1,7 +1,9 @@
+from pydantic import BaseConfig
+
 from const import HOST, PORT
 import uvicorn
 from fastapi import Depends, FastAPI
-from routes import *
+from routes import default, projects, statements, users, connections
 
 app = FastAPI()
 app.include_router(default.router)
