@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from models import project, user
+from models.project import ProjectQuery
 from services.jwt_auth import get_optional_user, get_current_active_user
 import controller as db
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/project", )
 @router.post("/", response_model=list[project.Project])
 async def get(
         current_user: Annotated[user.User, Depends(get_optional_user)],
-        form_data: Annotated[db.projects.ProjectQuery, Depends()]):
+        form_data: Annotated[ProjectQuery, Depends()]):
     print(f"GET PROJECT \nBy: Anyone\nBody: {form_data}")
     result = db.projects.get_many(form_data, current_user)
     return result

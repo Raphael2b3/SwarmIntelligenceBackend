@@ -1,8 +1,11 @@
 from bson import ObjectId
 from pydantic import BaseModel
 
-from models.mongomodel import MongoModel
+from models.swarmintelligencemodel import SwarmIntelligenceModel
 
 
-class Statement(MongoModel):
+class Statement(SwarmIntelligenceModel):
     value: str = None
+    upvotes: int = None
+    downvotes: int = None
+    misunderstood: int = None

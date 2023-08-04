@@ -1,12 +1,12 @@
 from pydantic import BaseModel, computed_field, ConfigDict, Field
 
-from models.mongomodel import MongoModel, PydanticObjectId
+from models.swarmintelligencemodel import SwarmIntelligenceModel, PydanticObjectId
 
 
 # stm = statement
 
 
-class Connection(MongoModel):
+class Connection(SwarmIntelligenceModel):
     stm_start: PydanticObjectId = None
     stm_stop: PydanticObjectId = None
     stm_type: str = None

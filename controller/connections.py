@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 import models.connection
 
-from models.mongomodel import MongoModel
+from models.swarmintelligencemodel import SwarmIntelligenceModel
 from services.dbcontroller import projectsDB, connectionsDB
 
 debugprefix = "Connection-Controller "

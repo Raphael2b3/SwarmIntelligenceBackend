@@ -1,9 +1,19 @@
 from bson import ObjectId
 from pydantic import BaseModel
 
-from models.mongomodel import MongoModel, PydanticObjectId
+from models.swarmintelligencemodel import SwarmIntelligenceModel, PydanticObjectId
 
 
-class Project(MongoModel):
+class Project(SwarmIntelligenceModel):
     name: str = None
-    connections: list[PydanticObjectId]  = None
+    rootstatements: list[PydanticObjectId] = None
+    nstatements: int = None # TODO generateable
+    nvotes: int = None  # TODO generateable
+
+
+class ProjectQuery(BaseModel):
+    filter: Project
+    limit: int = 8
+    skip: int = 0
+    depth: int = 1
+    sort_method: str = None

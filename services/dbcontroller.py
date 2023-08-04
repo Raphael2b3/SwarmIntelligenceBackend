@@ -22,5 +22,9 @@ connectionsDB.create_index([("hash", pymongo.ASCENDING)])
 
 projectsDB = db[DB_COLLECTION_NAME_PROJECTS]
 statementsDB = db[DB_COLLECTION_NAME_STATEMENTS]
-usersDB = db[DB_COLLECTION_NAME_USERS]
 
+usersDB = db[DB_COLLECTION_NAME_USERS]
+usersDB.create_index(("name", pymongo.ASCENDING))
+
+reportDB = db["report"]  # TODO "report" make from env
+reportDB.create_index(("id", pymongo.ASCENDING))

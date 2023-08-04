@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 
 import models.project
-from const import DB_COLLECTION_NAME_PROJECTS
-
+from models.user import User
 from services.dbcontroller import projectsDB
 
 
@@ -14,17 +13,10 @@ def delete(doc: models.project.Project):
     return projectsDB.delete_one(doc.model_dump())
 
 
-class ProjectQuery(BaseModel):
-    filter: models.project.Project
-    limit: int = 8
-    skip: int = 0
-    depth: int = 1
-    sort_method: str = None
+def get_many(doc: models.project.ProjectQuery, user: User):
+    # exlcude author if author is not user
+    return projectsDB.find(**doc.model_dump())
 
 
-def get_many(doc: ProjectQuery):
-    return projectsDB.find(*doc.model_dump())
-
-
-def get_one(doc:models.project.Project):
+def get_one(doc: models.project.Project):
     return projectsDB.find_one(doc.model_dump())

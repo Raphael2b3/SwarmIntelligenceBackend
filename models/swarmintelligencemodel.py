@@ -21,8 +21,11 @@ PydanticObjectId = Annotated[ObjectId, PlainValidator(objectId_validation), Plai
     objectId_serialization_json, return_type=str, when_used="json")]
 
 
-class MongoModel(BaseModel):
+class SwarmIntelligenceModel(BaseModel):
     id: PydanticObjectId = Field(None, validation_alias=AliasChoices("_id", "id"), alias="_id")
+    stars: int = 0
+    reported: bool = False
+    author: str = None
 
     def model_dump(
             self,
