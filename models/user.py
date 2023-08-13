@@ -1,11 +1,9 @@
 from bson import ObjectId
 from pydantic import BaseModel
 
-from models.swarmintelligencemodel import SwarmIntelligenceModel, PydanticObjectId
-
 
 class Vote(BaseModel):
-    object: PydanticObjectId
+    object: int
     value: float | int = None
 
 
@@ -14,9 +12,9 @@ class CreateUserRequest(BaseModel):
     password: str
 
 
-class User(SwarmIntelligenceModel):
+class User(BaseModel):
     username: str = None
     hashed_password: str = None
     disabled: bool = None
     votes: list[Vote] = []
-    givenstars: list[PydanticObjectId] = []
+    givenstars: list[int] = []

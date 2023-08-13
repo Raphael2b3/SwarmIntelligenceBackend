@@ -1,5 +1,4 @@
 from typing import Annotated
-
 from fastapi import APIRouter, Depends
 from models import project, user
 from models.project import ProjectQuery

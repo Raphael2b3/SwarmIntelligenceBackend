@@ -1,30 +1,13 @@
-import pymongo
-from pydantic import BaseModel
-from pymongo import MongoClient
-from pandas import DataFrame
-from const import DB_CONNECTION_STRING, DB_NAME, DB_COLLECTION_NAME_CONNECTIONS, DB_COLLECTION_NAME_PROJECTS, \
-    DB_COLLECTION_NAME_STATEMENTS, DB_COLLECTION_NAME_USERS
+from const import DB_CONNECTION_STRING
+from neo4j import GraphDatabase
+
+# URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
+URI = DB_CONNECTION_STRING
+
+AUTH = ("neo4j", "00000000")
 
 
-def get_database():
-    # Provide the mongodb atlas url to connect python to mongodb using pymongo
-
-    # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
-    client = MongoClient(DB_CONNECTION_STRING)
-    # Create the database for our example (we will use the same database throughout the tutorial
-    return client[DB_NAME]
+# Labels: opposes, supports,
 
 
-db = get_database()
-
-connectionsDB = db[DB_COLLECTION_NAME_CONNECTIONS]
-connectionsDB.create_index([("hash", pymongo.ASCENDING)])
-
-projectsDB = db[DB_COLLECTION_NAME_PROJECTS]
-statementsDB = db[DB_COLLECTION_NAME_STATEMENTS]
-
-usersDB = db[DB_COLLECTION_NAME_USERS]
-usersDB.create_index(("name", pymongo.ASCENDING))
-
-reportDB = db["report"]  # TODO "report" make from env
-reportDB.create_index(("id", pymongo.ASCENDING))
+driver = GraphDatabase.driver(URI, auth=AUTH)

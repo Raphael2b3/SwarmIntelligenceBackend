@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from typing import Annotated
 
 import controller.users
-from controller import users
 from models.user import User
 
 # TODO Take Secret KEY FROM .ENV
@@ -39,12 +38,12 @@ def get_password_hash(password):
 
 
 def authenticate_user(userdata):
-    user = controller.users.get_one(userdata.username)
-    if not user:
+    hashed_pw = controller.users.get_hashed_password(userdata)
+    if not hashed_pw:
         return False
-    if not verify_password(userdata.password, user.hashed_password):
+    if not verify_password(userdata.password, hashed_pw):
         return False
-    return user
+    return userdata.username
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
