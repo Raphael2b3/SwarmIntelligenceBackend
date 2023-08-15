@@ -1,4 +1,6 @@
-from bson import ObjectId
+from uuid import uuid4
+
+from neo4j import ResultSummary, Record
 from pydantic import BaseModel
 
 from models.user import User
@@ -8,66 +10,46 @@ import models.connection
 debugprefix = "Connection-Controller "
 
 
-class ConnectionQuery(BaseModel):
-    filter: models.connection.Connection
-    limit: int = 8
-    skip: int = 0
-    depth: int = 1
-    sort_method: str = None
-
-
-def create_connection(doc: models.connection.Connection, user: User):
-    query = """
-    MATCH (a:Statement), (b:Statement)
-    WHERE b.id = $stopId AND a.id = $startId
-    WITH a, b, NOT (b)-[*]->(a) AND NOT (a)-[*2]->(b) as A
-    CALL {
-        WITH *
-        WITH * WHERE A
-        MERGE (a)-[:connected_to]->(c:Connection)-[:$supports]->(b)
-        return c as c
-    }
-    RETURN A, c
+def create_connection(*, stopId, startId, supports, username):
+    supportStr = "SUPPORTS" if supports else "OPPOSES"
+    query = f"""
+    MATCH (a:Statement{{id:$startId}}) 
+    MATCH (b:Statement{{id:$stopId}})
+    WITH a, b
+    WHERE NOT (b)-[*]->(a) AND NOT (a)-[:HAS]->()-->(b)
+    MERGE (a)-[:HAS]->(c:Connection{{id:$newId}})-[:{supportStr}]->(b)
+    WITH c
+    MATCH (u:User{{username:$username}})
+    MERGE (u)-[:CREATED]->(c) 
     """
 
-    supportStr = "supports" if doc.supports else "opposes"
-    result, c = driver.execute_query(query, startId=doc.stm_start, stopId=doc.stm_stop, supports=supportStr)
-    print(result)
-    if not result: raise "Couldnt create Connection"
+    records, summary, keys = driver.execute_query(query, startId=startId, stopId=stopId, supports=supportStr,
+                                                  newId=str(uuid4()),username=username)
 
-    assign_author = """
-        MATCH (c:$c) 
-        MATCH (u:User{username:$username})
-        MERGE (u)-[:created]->(c) 
-    """
-    result2 = driver.execute_query(assign_author, con=c, username=user.username)
-    if not result2: raise "Couldnt asign author"
-    print(result2)
 
-def delete_connection(doc: models.connection.Connection, user: User):
-    print(debugprefix, "DeleteGlobally", doc.model_dump())
+def delete_connection(*, connectionId, username):
+    print(debugprefix, "DeleteGlobally, ")
     query = """
-            MATCH (:Statement{id:{$startId})-->(c:Connection)-->(:Statement{id:{$stopId}), (u:User{username:$username})
-            WHERE (u)-[:created]->(c) 
-            DELETE (c)
+            MATCH (c:Connection{id:$connectionId})
+            MATCH (u:User{username:$username})
+            WITH *
+            WHERE (u)-[:CREATED]->(c) 
+            DETACHE DELETE (c)
             """
-    result = driver.execute_query(query, startId=doc.stm_start, stopId=doc.stm_stop, username=user.username)
+    result = driver.execute_query(query, connectionId=connectionId, username=username)
     print(result)
 
 
-def weight_connection(connection: models.connection.Connection, user):
+def weight_connection(*, connectionId, connection_not_ok, username):
     query = """
-        MATCH (:Statement{id:{$startId})-->(c:Connection)-->(:Statement{id:{$stopId}), (u:User{username:$username})
-        WHERE NOT (u)-[:weight]->(c) 
-        MERGE (u)-[:weight{weight:$weight}]->(c)
+        MATCH (c:Connection{id: $id})
+        MATCH (u:User{username:$username})
+        MERGE (u)-[r:WEIGHT]->(c)
+        SET r.bad = $weight
         """
 
-    result = driver.execute_query(query, startId=connection.stm_start, stopId=connection.stm_stop,
-                                  weight=connection.weight, username=user.username)
+    result = driver.execute_query(query, id=connectionId, weight=connection_not_ok, username=username)
     print(result)
     if not result:
         raise "Couldnt create Connection"
 
-
-def get_connection(doc: models.connection.Connection):
-    pass

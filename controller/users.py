@@ -2,14 +2,19 @@ from bson import ObjectId
 from pydantic import BaseModel
 from pymongo.results import InsertOneResult
 
-import services.dbcontroller
+from services.dbcontroller import driver
 from models.report import Report
 from models.user import User, Vote
-from models.user import CreateUserRequest
 
 
-def create(doc: CreateUserRequest):
-    print("Create User:", doc.model_dump())
+def create(*, username, hashed_password):
+    driver.execute_query("""
+    OPTIONAL MATCH (c:User{username:$username})
+    WITH C 
+    WHERE C IS NULL
+    CREATE (:User{username:$username, hashed_password:$hashed_password})
+    RETURN C
+    """)
     return
 
 
