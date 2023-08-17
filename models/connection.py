@@ -9,5 +9,5 @@ class Connection(BaseModel):
     stm_start: int = None
     stm_stop: int = None
     supports: bool = None
-
+    is_bad: bool = None
 

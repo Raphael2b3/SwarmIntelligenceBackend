@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Annotated
 
 import controller.users
+import models.user
 from models.user import User
 
 # TODO Take Secret KEY FROM .ENV
@@ -61,7 +62,7 @@ async def get_optional_user(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         return await get_current_user(token)
     except:
-        return None
+        return models.user.User()
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):

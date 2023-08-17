@@ -20,7 +20,7 @@ async def create(
                                        username=current_user.username)
 
 
-@router.post("/is_bad")  # auth
+@router.post("/isbad")  # auth
 async def weight(
         current_user: Annotated[user.User, Depends(get_current_active_user)],
         form_data: Annotated[connection.Connection, Depends()]):

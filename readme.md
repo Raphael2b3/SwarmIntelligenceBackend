@@ -54,6 +54,7 @@ modelliert.
 
 Die Knoten sind die Aussagen. Die Kanten sind
 
+---
 ### Wahrheitswert Berechnung
 
 Die Funktion v(i) ist der Wahrheitswert der durch die Votes ermittelt wird. Ein Upvote ist +1, ein downvote ist -1:
@@ -62,7 +63,7 @@ v(i)=(upvotes-downvotes)/n_votes
 
 Die Funktion g_k(i) ist die Gewichtung einer Verbindung zwischen Aussagen i und k und ist eine Zahl zwischen 0 und 1
 
-g_k(i) -> [0,1] : g_k(anzahl warnungen als x) = e^(-x) 
+g_k(i) -> [0,1] : g_k(anzahl warnungen als x) = e^(-x)
 
 C_k ist die Menge aller Children Knoten von K. Also Knoten i, die die Aussage K unterstützen oder wiederlegen.
 
@@ -83,19 +84,13 @@ W_k(i) = R*v(k) + (1-R)*summe[ i in C_k: w_c(i) * g_k(i) ]/ summe[ i in C_k, g_k
 
 ## Routen
 
---- 
-### "/"
+### POST "/connection/create"
 
-Home kann nichts
+Erstelle eine Connection
 
----
-
-### "/connection/create"
-
-Erstelle eine Connection 
 ```
+
 Sende:
-body =
 {
     "stm_start": "Aussage id die unterstützend Arbeitet"
     "stm_stop": "Aussage id die unterstützt wird"
@@ -104,15 +99,375 @@ body =
 ```
 
 ---
-### "/"
 
-Home kann nichts
+### POST "/connection/isbad"
+
+```
+Sende:
+{
+    "id": "connection Id"
+    "is_bad": true // wenn user connection weg haben will false wenn rückgängig gemacht werden soll
+    
+}
+```
 
 --- 
 
-### "/"
-Home kann nichts
+### POST "/connection/delete"
 
-### "/"
-Home kann nichts
+```
+Sende:
+{
+    "id": "connection Id"    
+}
+```
+
+---
+
+### POST "/token"
+
+```
+Sende:
+{
+    "username": "username"
+    "password": "password123"    // muss halt https sein sonst unsicher
+}
+
+Erhalte:
+{
+    "access_token": "fabcef138fb89cf934f93a9def934892", //irgendwie so
+    "token_type": "bearer"
+}
+```
+
+---
+
+### POST "/statement/star?remove=True"
+
+remove=True wenn der stern entfernt werden soll, sonst weglassen
+
+```
+
+Sende:
+{
+    "id": "Id von Object was mit stern markiert werden soll"
+}
+
+```
+
+---
+
+### POST "/project/star?remove=True"
+
+remove=True wenn der stern entfernt werden soll, sonst weglassen
+
+```
+
+Sende:
+{
+    "id": "Id von Object was mit stern markiert werden soll"
+}
+
+```
+
+---
+
+### POST "/user/star?remove=True"
+
+remove=True wenn der stern entfernt werden soll, sonst weglassen
+
+```
+
+Sende:
+{
+    "id": "Id von Object was mit stern markiert werden soll"
+}
+
+```
+
+---
+
+### POST "/statement/report"
+
+```
+
+Sende:
+{
+    "id": "Id von Object was reported wird"
+    "message": "Begründung was nicht in Ordnung war"
+}
+
+```
+
+---
+
+### POST "/project/report"
+
+```
+
+Sende:
+{
+    "id": "Id von Object was reported wird"
+    "message": "Begründung was nicht in Ordnung war"
+}
+```
+
+---
+
+### POST "/user/report"
+
+```
+
+Sende:
+{
+    "id": "Id von Object was reported wird"
+    "message": "Begründung was nicht in Ordnung war"
+}
+
+```
+
+---
+
+### GET "/project?q=A"
+
+"q=A"  ->  "A" ist der Suchstring
+
+```
+
+Erhalte:
+[
+    {
+        "id": "0",
+        "name": "Abnehmen"
+    },
+    {
+        "id": "1",
+        "name": "Autofahren"
+    },
+    {
+        "id": "2",
+        "name": "Alkohol"
+    },
+]
+
+```
+
+---
+
+### POST "/project/create"
+
+```
+
+Sende:
+{
+    "name": "Analysis"
+}
+
+
+```
+
+---
+
+### POST "/project/delete"
+
+```
+
+Sende:
+{
+    "id": "4"
+}
+
+
+```
+
+---
+
+### GET "/statement?q="
+
+"q="  ->  "" ist der Suchstring
+
+```
+
+Erhalte:
+[
+    {
+        "id": "22",
+        "text": "1 ist 1"
+        "user_vote":-1 # kann 1, 0, -1 sein 
+        "user_is_author": false 
+    
+    },
+    {
+        "id": "23",
+        "text": "2 ist 2"
+        "user_vote":-1 # kann 1, 0, -1 sein 
+        "user_is_author": false 
+    
+    },
+    {
+        "id": "24",
+        "text": "3 ist 3"
+        "user_vote":-1 # kann 1, 0, -1 sein 
+        "user_is_author": true  
+    
+    },
+]
+
+```
+
+---
+
+### POST "/statement/create"
+
+```
+
+Sende:
+
+{
+    "value": "Analysis"
+}
+
+
+```
+
+---
+
+### POST "/statement/delete"
+Deletes globally for ever
+```
+
+Sende:
+{
+    "id": "4"
+}
+
+
+```
+
+---
+
+### POST "/statement/context"
+
+```
+
+Sende:
+{
+    "id": "4",
+    
+    "parentgenerations": 1, //how many layers/generations of parents 
+    "n_parents": 4, // number of parents loaded
+    "skip_parents": 0, // number of parents skipped before loading
+    
+    "childgenerations": 1, //how many layers/generations of children 
+    "n_childs": 4, // number of children loaded
+    "skip_childs": 4, // number of children skipped before loading
+    
+    
+}
+
+Erhalte:
+
+{
+
+    "id" = "88",
+    "value": "Delphine sind schwule heie ja",
+    "w": 0.6,
+    "args": [
+                {
+                "id": "12"
+                "supports": true,
+                "statement": {
+                    "id" = "88",
+                    "value": "Delphine machen fischen angst wie Haie",
+                    "w": 0.9,
+                    "args": [],
+                    "parents": [],
+                    "tags": ["lgbtq+","fyfyfy","fische"],
+                    "user_vote": 1, // 1: upvote, 0: Neutral, -1: down
+                    "user_is_author": false 
+                    },
+                "user_disapprove": false,
+                "user_is_author": true
+                },
+                {
+                "id": "13"
+                "supports": false,
+                "statement": {
+                    "id" = "69",
+                    "value": "Delphine sind Hetero weil sie überleben",
+                    "w": 0.98,
+                    "args": [],
+                    "parents": [],
+                    "tags": ["lgbtq+","fyfyfy","fische"],
+                    "user_vote": -1,
+                    "user_is_author": true 
+                    },
+                "user_disapprove": true,
+                "user_is_author": false
+                }
+            ],
+    "parents": [{
+                "id": "59"
+                "supports": true,
+                "statement": {
+                    "id" = "25",
+                    "value": "Delphine gehören zu LGTBQ+ Community ja vallah",
+                    "w": 0.5,
+                    "args": [],
+                    "parents": [],
+                    "tags": ["lgbtq+","fyfyfy","fische"],
+                    "user_vote": -1,
+                    "user_is_author": true 
+                    },
+                "user_disapprove": true,
+                "user_is_author": false
+                }],
+    "tags": ["lgbtq+","fyfyfy","fische"],
+    "user_vote": 1 , 
+    "user_is_author": false
+
+}
+
+```
+
+---
+### POST "/statement/removeproject"
+```
+
+Sende:
+{
+    "id": "4",
+    "projectname": "Auto"
+    
+}
+
+
+```
+
+---
+
+### POST "/user/create"
+```
+
+Sende:
+{
+    "username":"susibaka203",
+    "password":"132kdsad2314_;;sdlj"
+    
+}
+
+
+```
+
+---
+### POST "/user/delete"
+```
+
+Sende:
+{
+    "username":"susibaka203",
+}
+
+
+```
 

@@ -30,6 +30,6 @@ def get_many(queryString):
     records, summary, keys = driver.execute_query("""
             MATCH (p:Project)
             WHERE p.name STARTS WITH $queryString
-            return p
+            return p.name as name, p.id as id
             """, queryString=queryString)
-    return [Project(**dict(record)) for record in records]
+    return [dict(record) for record in records]

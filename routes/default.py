@@ -42,4 +42,4 @@ async def star(controller: Literal["statement", "project", "user",],
 @router.post("{controller}/report")
 async def report(controller: Literal["statement", "project", "user"],
                        form_data: Annotated[Report, Depends()]):
-    cntrl.users.report(objectid=form_data.objectId, _type=controller, reason=form_data.message)
+    cntrl.users.report(objectid=form_data.id, _type=controller, reason=form_data.message)
