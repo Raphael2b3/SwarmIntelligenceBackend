@@ -8,7 +8,7 @@ from models import user
 from models.report import Report
 from services.jwt_auth import Token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, \
     get_current_active_user
-from controller.users import report, modify_star
+import controller as cntrl
 
 router = APIRouter()
 
@@ -35,10 +35,11 @@ async def login_for_access_token(
 async def star(controller: Literal["statement", "project", "user",],
                current_user: Annotated[user.User, Depends(get_current_active_user)],
                form_data: Annotated[Any, Depends()], remove: bool = False, ):
-    return controller + modify_star(current_user, form_data, remove)
+    cntrl.users.modify_star(username=current_user.username, objectid=form_data.id,
+                                                _type=controller, removestar=remove)
 
 
 @router.post("{controller}/report")
-async def report_model(_controller: Literal["statement", "project", "user"],
+async def report(controller: Literal["statement", "project", "user"],
                        form_data: Annotated[Report, Depends()]):
-    return _controller + report(form_data, _controller)
+    cntrl.users.report(objectid=form_data.objectId, _type=controller, reason=form_data.message)

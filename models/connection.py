@@ -5,9 +5,9 @@ from pydantic import BaseModel, computed_field, ConfigDict, Field
 
 
 class Connection(BaseModel):
+    id: str = None
     stm_start: int = None
     stm_stop: int = None
     supports: bool = None
-    weight: float = None
 
 

@@ -24,8 +24,8 @@ def create_connection(*, stopId, startId, supports, username):
     """
 
     records, summary, keys = driver.execute_query(query, startId=startId, stopId=stopId, supports=supportStr,
-                                                  newId=str(uuid4()),username=username)
-
+                                                  newId=str(uuid4()), username=username)
+    print(*[record for record in list(records)])
 
 def delete_connection(*, connectionId, username):
     print(debugprefix, "DeleteGlobally, ")
@@ -36,20 +36,17 @@ def delete_connection(*, connectionId, username):
             WHERE (u)-[:CREATED]->(c) 
             DETACHE DELETE (c)
             """
-    result = driver.execute_query(query, connectionId=connectionId, username=username)
-    print(result)
+    records, summary, keys = driver.execute_query(query, connectionId=connectionId, username=username)
+    print(*[record for record in list(records)])
 
 
-def weight_connection(*, connectionId, connection_not_ok, username):
+def weight_connection(*, connectionId, is_bad, username):
     query = """
         MATCH (c:Connection{id: $id})
         MATCH (u:User{username:$username})
         MERGE (u)-[r:WEIGHT]->(c)
-        SET r.bad = $weight
+        SET r.bad = $is_bad
         """
 
-    result = driver.execute_query(query, id=connectionId, weight=connection_not_ok, username=username)
-    print(result)
-    if not result:
-        raise "Couldnt create Connection"
-
+    records, summary, keys = driver.execute_query(query, id=connectionId, is_bad=is_bad, username=username)
+    print(*[record for record in list(records)])

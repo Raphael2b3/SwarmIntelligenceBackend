@@ -38,7 +38,7 @@ def get_password_hash(password):
 
 
 def authenticate_user(userdata):
-    hashed_pw = controller.users.get_hashed_password(userdata)
+    hashed_pw = controller.users.get_hashed_password(username=userdata.username)
     if not hashed_pw:
         return False
     if not verify_password(userdata.password, hashed_pw):
@@ -78,7 +78,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = controller.users.get_one(token_data)
+    user = controller.users.get_user(token_data.username)
     if user is None:
         raise credentials_exception
     return user

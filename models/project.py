@@ -2,12 +2,13 @@ from bson import ObjectId
 from pydantic import BaseModel
 
 
-
 class Project(BaseModel):
-    pass
+    id: str = None
+    name: str = None
 
 
 class ProjectQuery(BaseModel):
+    q: str = ""
     limit: int = 8
     skip: int = 0
     depth: int = 1

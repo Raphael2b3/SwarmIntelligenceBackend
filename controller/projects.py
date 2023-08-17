@@ -1,17 +1,20 @@
 from pydantic import BaseModel
 
-import models.project
-from models.user import User
+from models.project import Project
 
 from services.dbcontroller import driver
 
 
 def create(*, projectname, username):
     records, summary, keys = driver.execute_query("""
-    MERGE (:Project{name:$projectname})
-    """, projectname=projectname)
+    MATCH (u:User{username:$username})
+    OPTIONAL MATCH (p:Project{name:$projectname})
+    WITH p, u WHERE p is null
+    MERGE (:Project{name:$projectname})<-[:CREATED]-(u)
+    
+    """, projectname=projectname, username=username)
 
-    if False: # get changed from summary
+    if False:  # get changed from summary
         raise Exception(f"Project {projectname} already exists")
 
 
@@ -22,12 +25,11 @@ def delete(*, projectname, username):
         """, projectname=projectname, username=username)
 
 
-def get_many(username, queryString):
-    #TODO QUERY THRU queryString
+def get_many(queryString):
+    # TODO QUERY THRU queryString
     records, summary, keys = driver.execute_query("""
-            MATCH (p:Project{name:$projectname})<-[:CREATED]-(:User{username:$username})
-            DETACHE DELETE p
-            """, queryString=queryString, username=username)
-
-    return
-
+            MATCH (p:Project)
+            WHERE p.name STARTS WITH $queryString
+            return p
+            """, queryString=queryString)
+    return [Project(**dict(record)) for record in records]

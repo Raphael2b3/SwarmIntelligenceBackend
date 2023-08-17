@@ -16,5 +16,3 @@ class User(BaseModel):
     username: str = None
     hashed_password: str = None
     disabled: bool = None
-    votes: list[Vote] = []
-    givenstars: list[int] = []
