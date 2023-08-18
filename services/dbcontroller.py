@@ -21,6 +21,7 @@ INDECES:
 
 driver: Driver
 
+# TODO better driver management
 
 def init():
     global driver
