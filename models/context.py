@@ -18,6 +18,3 @@ class ConnectionContext(BaseModel):
     statement: StatementContext
     user_disapprove: bool = False
     user_is_author: bool = None
-
-
-# TODO Document the API with sample output and sample Input

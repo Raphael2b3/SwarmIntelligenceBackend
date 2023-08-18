@@ -13,4 +13,9 @@ app.include_router(users.router)
 app.include_router(connections.router)
 
 if __name__ == '__main__':
+    import services.dbcontroller as db
+    db.init()
+
     uvicorn.run(app, host=HOST, port=int(PORT))
+
+    db.teardown()

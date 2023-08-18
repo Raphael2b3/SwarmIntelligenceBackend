@@ -26,7 +26,7 @@ def delete(*, projectname, username):
 
 
 def get_many(queryString):
-    # TODO QUERY THRU queryString
+    # TODO make good query
     records, summary, keys = driver.execute_query("""
             MATCH (p:Project)
             WHERE p.name STARTS WITH $queryString
