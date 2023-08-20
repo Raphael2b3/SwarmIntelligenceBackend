@@ -19,10 +19,11 @@ async def project_delete_tx(tx, *, projectname, username):
 
 
 async def project_get_many(tx, query_string, n_results=10):
+    print("q:",query_string,".")
     result = await tx.run("""
             MATCH (p:Project)
             WHERE p.value STARTS WITH $query_string
             RETURN p.value as value, p.id as id
-            """, queryString=query_string)
+            """, query_string=query_string)
 
-    return [dict(record) async for record in await result.fetch(n_results)]
+    return [dict(record) for record in await result.fetch(n_results)]

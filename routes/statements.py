@@ -17,7 +17,7 @@ router = APIRouter(prefix="/statement", )
 async def get(current_user: Annotated[user.User, Depends(get_optional_user)], q=""):
     print(f"GET STATEMENT \nBy: {current_user}\nBody: {q}")
     async with get_driver().session(database="neo4j") as session:
-        result = await session.execute_read(ctrl.statements.get_many_statement_tx, queryString=q,
+        result = await session.execute_read(ctrl.statements.statement_get_many_tx, queryString=q,
                                             username=current_user.username)
     return result
 
@@ -28,7 +28,7 @@ async def create(
         body: Statement):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with get_driver().session(database="neo4j") as session:
-        t = await session.execute_write(ctrl.statements.create_statement_tx, text=body.value,
+        t = await session.execute_write(ctrl.statements.statement_create_tx, text=body.value,
                                         username=current_user.username)
         print(t)
 
@@ -37,7 +37,6 @@ async def create(
 async def get_context(
         current_user: Annotated[user.User, Depends(get_optional_user)],
         body: ContextRequest):
-
     print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
 
     async with get_driver().session(database="neo4j") as session:
@@ -57,8 +56,8 @@ async def delete_globally(
         body: Any):
     print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with get_driver().session(database="neo4j") as session:
-        await session.execute_write(ctrl.statements.delete_statement_tx, statementId=body.id,
-                              username=current_user.username)
+        await session.execute_write(ctrl.statements.statement_delete_tx, statementId=body.id,
+                                    username=current_user.username)
 
 
 class TagRequest(BaseModel):

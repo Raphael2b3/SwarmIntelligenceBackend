@@ -33,7 +33,7 @@ async def user_get_hashed_password_tx(tx, username):
 async def user_modify_star_tx(tx, *, username, object_id, _type="Project|Statement|User", removestar=False):
     _type = _type.capitalize()
     if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
-        raise Exception("Invalid Object of Label name " + _type)
+        raise Exception("Invalid Object of Label value " + _type)
     q = f"""
             MATCH (u:User{{username:$username}})
             MATCH (o:{_type}{{id:$object_id}})
@@ -47,7 +47,7 @@ async def user_modify_star_tx(tx, *, username, object_id, _type="Project|Stateme
 async def user_report_tx(tx, *, object_id, reason="", _type="Project|Statement|User", ):
     _type = _type.capitalize()
     if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
-        raise Exception("Invalid Label name " + _type)
+        raise Exception("Invalid Label value " + _type)
     await tx.run(f"""
             MATCH (o:{_type}{{id:$object_id}})
             OPTIONAL MATCH (o)<-[r:REPORTED]-(:Report)
