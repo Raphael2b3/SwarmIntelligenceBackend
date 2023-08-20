@@ -194,7 +194,7 @@ Sende:
 Sende:
 {
     "id": "Id von Object was reported wird"
-    "message": "Begründung was nicht in Ordnung war"
+    "value": "Begründung was nicht in Ordnung war"
 }
 
 ```
@@ -208,7 +208,7 @@ Sende:
 Sende:
 {
     "id": "Id von Object was reported wird"
-    "message": "Begründung was nicht in Ordnung war"
+    "value": "Begründung was nicht in Ordnung war"
 }
 ```
 
@@ -221,7 +221,7 @@ Sende:
 Sende:
 {
     "id": "Id von Object was reported wird"
-    "message": "Begründung was nicht in Ordnung war"
+    "value": "Begründung was nicht in Ordnung war"
 }
 
 ```
@@ -238,15 +238,15 @@ Erhalte:
 [
     {
         "id": "0",
-        "name": "Abnehmen"
+        "value": "Abnehmen"
     },
     {
         "id": "1",
-        "name": "Autofahren"
+        "value": "Autofahren"
     },
     {
         "id": "2",
-        "name": "Alkohol"
+        "value": "Alkohol"
     },
 ]
 
@@ -260,7 +260,7 @@ Erhalte:
 
 Sende:
 {
-    "name": "Analysis"
+    "value": "Analysis"
 }
 
 
@@ -292,21 +292,21 @@ Erhalte:
 [
     {
         "id": "22",
-        "text": "1 ist 1"
+        "value": "1 ist 1"
         "user_vote":-1 # kann 1, 0, -1 sein 
         "user_is_author": false 
     
     },
     {
         "id": "23",
-        "text": "2 ist 2"
+        "value": "2 ist 2"
         "user_vote":-1 # kann 1, 0, -1 sein 
         "user_is_author": false 
     
     },
     {
         "id": "24",
-        "text": "3 ist 3"
+        "value": "3 ist 3"
         "user_vote":-1 # kann 1, 0, -1 sein 
         "user_is_author": true  
     
@@ -354,11 +354,11 @@ Sende:
 {
     "id": "4",
     
-    "parentgenerations": 1, //how many layers/generations of parents 
+    "parent_gens": 1, //how many layers/generations of parents 
     "n_parents": 4, // number of parents loaded
     "skip_parents": 0, // number of parents skipped before loading
     
-    "childgenerations": 1, //how many layers/generations of children 
+    "child_gens": 1, //how many layers/generations of children 
     "n_childs": 4, // number of children loaded
     "skip_childs": 4, // number of children skipped before loading
     
@@ -436,7 +436,7 @@ Erhalte:
 
 Sende:
 {
-    "id": "4",
+    "statement_id": "4",
     "projectname": "Auto"
     
 }
