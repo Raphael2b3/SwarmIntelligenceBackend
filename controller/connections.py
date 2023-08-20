@@ -1,52 +1,35 @@
 from uuid import uuid4
 
-from neo4j import ResultSummary, Record
-from pydantic import BaseModel
 
-from models.user import User
-from services.dbcontroller import driver
-import models.connection
-
-debugprefix = "Connection-Controller "
-
-
-def create_connection(*, stopId, startId, supports, username):
-    supportStr = "SUPPORTS" if supports else "OPPOSES"
+async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
+    support_str = "SUPPORTS" if is_support else "OPPOSES"
     query = f"""
-    MATCH (a:Statement{{id:$startId}}) 
-    MATCH (b:Statement{{id:$stopId}})
+    MATCH (a:Statement{{id:$start_id}}) 
+    MATCH (b:Statement{{id:$stop_id}})
     WITH a, b
-    WHERE NOT (b)-[*]->(a) AND NOT (a)-[:HAS]->()-->(b)
-    MERGE (a)-[:HAS]->(c:Connection{{id:$newId}})-[:{supportStr}]->(b)
+    WHERE NOT (b)-[*]->(a) AND NOT (a)-[:HAS]->(:Connection)-->(b)
+    MERGE (a)-[:HAS]->(c:Connection{{id:$new_id}})-[:{support_str}]->(b)
     WITH c
     MATCH (u:User{{username:$username}})
-    MERGE (u)-[:CREATED]->(c) 
+    MERGE (u)-[:CREATED]->(c)
     """
+    await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
 
-    records, summary, keys = driver.execute_query(query, startId=startId, stopId=stopId, supports=supportStr,
-                                                  newId=str(uuid4()), username=username)
-    print(*[record for record in list(records)])
 
-def delete_connection(*, connectionId, username):
-    print(debugprefix, "DeleteGlobally, ")
-    query = """
-            MATCH (c:Connection{id:$connectionId})
+async def connection_delete_tx(tx, *, connection_id, username):
+    await tx.run("""
+            MATCH (c:Connection{id:$connection_id})
             MATCH (u:User{username:$username})
             WITH *
             WHERE (u)-[:CREATED]->(c) 
             DETACHE DELETE (c)
-            """
-    records, summary, keys = driver.execute_query(query, connectionId=connectionId, username=username)
-    print(*[record for record in list(records)])
+            """, connection_id=connection_id, username=username)
 
 
-def weight_connection(*, connectionId, is_bad, username):
-    query = """
-        MATCH (c:Connection{id: $id})
+async def connection_weight_tx(tx, *, connection_id, is_bad, username):
+    await tx.run("""
+        MATCH (c:Connection{id: $connection_id})
         MATCH (u:User{username:$username})
         MERGE (u)-[r:WEIGHT]->(c)
-        SET r.bad = $is_bad
-        """
-
-    records, summary, keys = driver.execute_query(query, id=connectionId, is_bad=is_bad, username=username)
-    print(*[record for record in list(records)])
+        SET r.is_bad = $is_bad
+        """, connection_id=connection_id, is_bad=is_bad, username=username)

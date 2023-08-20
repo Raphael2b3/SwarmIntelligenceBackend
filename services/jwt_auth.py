@@ -9,11 +9,8 @@ from typing import Annotated
 import controller.users
 import models.user
 from models.user import User
-
-# TODO Take Secret KEY FROM .ENV
-__SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from const import __SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from services.dbcontroller import get_driver
 
 
 class Token(BaseModel):
@@ -38,8 +35,11 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def authenticate_user(userdata):
-    hashed_pw = controller.users.get_hashed_password(username=userdata.username)
+async def authenticate_user(userdata):
+    print("Authenticate ", userdata.username)
+    async with get_driver().session(database="neo4j") as session:
+        hashed_pw = await session.execute_read(controller.users.user_get_hashed_password_tx, username=userdata.username)
+        print(hashed_pw)
     if not hashed_pw:
         return False
     if not verify_password(userdata.password, hashed_pw):
@@ -52,7 +52,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, __SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -71,15 +71,18 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    payload = jwt.decode(token, __SECRET_KEY, algorithms=[ALGORITHM])
+
     try:
-        payload = jwt.decode(token, __SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        username = payload.get("sub")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except JWTError as e:
         raise credentials_exception
-    user = controller.users.get_user(token_data.username)
+
+    async with get_driver().session(database="neo4j") as session:
+        user = await session.execute_read(controller.users.get_user_tx, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user

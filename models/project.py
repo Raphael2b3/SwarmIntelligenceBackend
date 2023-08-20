@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class Project(BaseModel):
     id: str = None
-    name: str = None
+    value: str = None
 
 
 class ProjectQuery(BaseModel):

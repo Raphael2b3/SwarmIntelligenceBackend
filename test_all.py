@@ -1,8 +1,10 @@
 import unittest
 from controller.connections import create_connection, weight_connection, delete_connection
-from services.dbcontroller import driver
+from controller.statements import create
+import controller.users as usercntrl
+from services.dbcontroller import get_driver
 
-
+# TODO Make good tests
 class TestConnectionController(unittest.TestCase):
     startId = 0
     stopId = 1
@@ -20,6 +22,8 @@ class TestConnectionController(unittest.TestCase):
     def test_delete_connection(self):
         delete_connection(stopId=self.stopId, startId=self.startId, username=self.username, )  # add assertion here
 
+    def test_create_test_data(self):
+        usercntrl.create(username="tim", hashed_password="2134321")
 
 
 if __name__ == '__main__':

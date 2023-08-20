@@ -1,35 +1,29 @@
-from pydantic import BaseModel
-
-from models.project import Project
-
-from services.dbcontroller import driver
+from uuid import uuid4
 
 
-def create(*, projectname, username):
-    records, summary, keys = driver.execute_query("""
+async def project_create_tx(tx, *, projectname, username):
+    await tx.run("""
     MATCH (u:User{username:$username})
-    OPTIONAL MATCH (p:Project{name:$projectname})
-    WITH p, u WHERE p is null
-    MERGE (:Project{name:$projectname})<-[:CREATED]-(u)
+    OPTIONAL MATCH (p:Project{value:$projectname})
+    WITH p, u WHERE p IS NULL
+    MERGE (u)-[:CREATED]->(:Project{id:$new_id,value:$projectname})
     
-    """, projectname=projectname, username=username)
-
-    if False:  # get changed from summary
-        raise Exception(f"Project {projectname} already exists")
+    """, projectname=projectname, username=username, new_id=str(uuid4()))
 
 
-def delete(*, projectname, username):
-    records, summary, keys = driver.execute_query("""
-        MATCH (p:Project{name:$projectname})<-[:CREATED]-(:User{username:$username})
+async def project_delete_tx(tx, *, projectname, username):
+    await tx.run("""
+        MATCH (p:Project{value:$projectname})<-[:CREATED]-(:User{username:$username})
         DETACHE DELETE p
         """, projectname=projectname, username=username)
 
 
-def get_many(queryString):
-    # TODO QUERY THRU queryString
-    records, summary, keys = driver.execute_query("""
+async def project_get_many(tx, query_string, n_results=10):
+    print("q:",query_string,".")
+    result = await tx.run("""
             MATCH (p:Project)
-            WHERE p.name STARTS WITH $queryString
-            return p.name as name, p.id as id
-            """, queryString=queryString)
-    return [dict(record) for record in records]
+            WHERE p.value STARTS WITH $query_string
+            RETURN p.value as value, p.id as id
+            """, query_string=query_string)
+
+    return [dict(record) for record in await result.fetch(n_results)]

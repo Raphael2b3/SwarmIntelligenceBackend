@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import services.jwt_auth
 from models import user
 from models.user import CreateUserRequest
+from services.dbcontroller import get_driver
 from services.jwt_auth import get_current_active_user
 import controller as db
 
@@ -14,16 +15,17 @@ router = APIRouter(prefix="/user", )
 
 @router.post("/create")
 async def create(
-        form_data: Annotated[CreateUserRequest, Depends()]):
-    print(f"CREATE USER \nBody: {form_data}")
-    result = db.users.create(username=form_data.username,
-                             hashed_password=services.jwt_auth.get_password_hash(form_data.password))
-    return result
+        body: CreateUserRequest):
+    print(f"CREATE USER \nBody: {body}")
+    async with get_driver().session(database="neo4j") as session:
+        await session.execute_write(db.users.user_create_tx, username=body.username, hashed_password=services.jwt_auth.get_password_hash(body.password))
 
 
-@router.post("/delete", response_model=user.User)
+
+@router.post("/delete")
 async def delete(
         current_user: Annotated[user.User, Depends(get_current_active_user)]):
     print(f"DELETE USER \nBy: {current_user}\nBody: {current_user}")
-    result = db.users.delete(username=current_user.username)
+    async with get_driver().session(database="neo4j") as session:
+        result = await session.execute_write(db.users.delete_user_tx, username=current_user.username)
     return result
