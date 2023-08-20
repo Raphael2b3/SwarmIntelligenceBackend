@@ -1,83 +1,71 @@
-from typing import Literal
+from multiprocessing.pool import AsyncResult
 
-from bson import ObjectId
-from pydantic import BaseModel
-from pymongo.results import InsertOneResult
+from neo4j import Record
 
-from services.dbcontroller import driver
-from models.report import Report
 from models.user import User, Vote
 
 
-def create(*, username, hashed_password):
-    driver.execute_query("""
+# TODO Make username in db unique
+async def user_create_tx(tx, *, username, hashed_password):
+    await tx.run(""" 
     MERGE (c:User{username:$username})
     WITH c 
     SET c.hashed_password = $hashed_password
     """, username=username, hashed_password=hashed_password)
 
 
-def delete(username):
-    driver.execute_query("""
+# TODO IF bookmarks work, use it here as well
+async def user_delete_tx(tx, username):
+    await tx.run("""
         MATCH (c:User{username:$username})
         DELETE c""", username=username)
 
 
-def get_hashed_password(username):
-    records, _, __ = driver.execute_query("""
+async def user_get_hashed_password_tx(tx, username):
+    result: AsyncResult = await tx.run("""
         MATCH (c:User{username:$username})
-        RETURN c.hashed_password as hashedpassword
+        RETURN c.hashed_password
     """, username=username)
-    try:
-        return list(records)[0]["hashedpassword"]
-    except Exception as e:
-        print(e)
-        return None
+    record = await result.value()
+    return record[0]
 
 
-def modify_star(username, objectid, _type="Project|Statement|User", removestar=False):
+async def user_modify_star_tx(tx, *, username, object_id, _type="Project|Statement|User", removestar=False):
     _type = _type.capitalize()
     if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
         raise Exception("Invalid Object of Label name " + _type)
-
-    records, _, __ = driver.execute_query(f"""
+    q = f"""
             MATCH (u:User{{username:$username}})
-            MATCH (o:{_type}{{id:$objectid}})
-            CALL {{
-                WITH *
-                WITH * WHERE NOT $removestar
-                MERGE (u)-[r:STARED]->(o)
-            UNION
-                WITH *
-                WITH * WHERE $removestar
-                OPTIONAL MATCH (u)-[r:STARED]->(o) 
-                DELETE r
-            }}
-            
-            
-            
-            """, username=username, removestar=removestar, objectid=objectid, )
+            MATCH (o:{_type}{{id:$object_id}})
+            """ + "MERGE (u)-[r:STARED]->(o)" if not removestar else """
+            MATCH (u)-[r:STARED]->(o)
+            DELETE r"""
+
+    await tx.run(q, username=username, removestar=removestar, object_id=object_id, )
 
 
-def report(objectid, reason="", _type="Project|Statement|User", ):
+async def user_report_tx(tx, *, object_id, reason="", _type="Project|Statement|User", ):
     _type = _type.capitalize()
     if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
-        raise Exception("Invalid Object of Label name " + _type)
-    records, _, __ = driver.execute_query(f"""
-            MATCH (o:{_type}{{id:$objectid}})
+        raise Exception("Invalid Label name " + _type)
+    await tx.run(f"""
+            MATCH (o:{_type}{{id:$object_id}})
             OPTIONAL MATCH (o)<-[r:REPORTED]-(:Report)
             WITH r WHERE r is Null
             MERGE (o)<-[r:REPORTED{{message:$message}}]-(:Report)
-            """, objectid=objectid, message=reason)
+            """, object_id=object_id, message=reason)
 
 
-def get_user(username):
-    records, _, __ = driver.execute_query("""
+async def get_user_tx(tx, *, username):
+    result = await tx.run("""
             MATCH (c:User{username:$username})
             RETURN c.disablet as disablet, c.username as username
         """, username=username)
     try:
-        return User(**dict(records[0]))
+        r = await result.single()
+        u = User(**r)
+        print(u)
+        return u
     except Exception as e:
         print(e)
         return None

@@ -2,7 +2,7 @@ import unittest
 from controller.connections import create_connection, weight_connection, delete_connection
 from controller.statements import create
 import controller.users as usercntrl
-from services.dbcontroller import driver
+from services.dbcontroller import get_driver
 
 # TODO Make good tests
 class TestConnectionController(unittest.TestCase):

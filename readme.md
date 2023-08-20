@@ -142,7 +142,7 @@ Erhalte:
 
 ---
 
-### POST "/statement/star?remove=True"
+### POST "/statement/star"
 
 remove=True wenn der stern entfernt werden soll, sonst weglassen
 
@@ -150,14 +150,15 @@ remove=True wenn der stern entfernt werden soll, sonst weglassen
 
 Sende:
 {
-    "id": "Id von Object was mit stern markiert werden soll"
+    "id": "Id von Object was mit stern markiert werden soll",
+    "remove":True
 }
 
 ```
 
 ---
 
-### POST "/project/star?remove=True"
+### POST "/project/star"
 
 remove=True wenn der stern entfernt werden soll, sonst weglassen
 
@@ -165,14 +166,15 @@ remove=True wenn der stern entfernt werden soll, sonst weglassen
 
 Sende:
 {
-    "id": "Id von Object was mit stern markiert werden soll"
+    "id": "Id von Object was mit stern markiert werden soll",
+    "remove": true
 }
 
 ```
 
 ---
 
-### POST "/user/star?remove=True"
+### POST "/user/star"
 
 remove=True wenn der stern entfernt werden soll, sonst weglassen
 
@@ -180,7 +182,8 @@ remove=True wenn der stern entfernt werden soll, sonst weglassen
 
 Sende:
 {
-    "id": "Id von Object was mit stern markiert werden soll"
+    "id": "Id von Object was mit stern markiert werden soll",
+    "remove":false
 }
 
 ```
@@ -431,7 +434,7 @@ Erhalte:
 ```
 
 ---
-### POST "/statement/removeproject"
+### POST "/statement/tag"
 ```
 
 Sende:

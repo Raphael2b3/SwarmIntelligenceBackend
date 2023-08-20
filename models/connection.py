@@ -1,7 +1,8 @@
 from pydantic import BaseModel, computed_field, ConfigDict, Field
 
 
-# stm = statement
+# TODO create good Schemes
+
 
 
 class Connection(BaseModel):
