@@ -30,23 +30,23 @@ async def user_get_hashed_password_tx(tx, username):
     return record[0]
 
 
-async def user_modify_star_tx(tx, *, username, object_id, _type="Project|Statement|User", removestar=False):
+async def user_modify_star_tx(tx, *, username, object_id, _type="Tag|Statement|User", removestar=False):
     _type = _type.capitalize()
-    if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
+    if _type not in ["Tag", "Statement", "User", "Tag|Statement|User"]:
         raise Exception("Invalid Object of Label value " + _type)
     q = f"""
             MATCH (u:User{{username:$username}})
-            MATCH (o:{_type}{{id:$object_id}})
+            MATCH (o:{_type}{{id:$id}})
             """ + "MERGE (u)-[r:STARED]->(o)" if not removestar else """
             MATCH (u)-[r:STARED]->(o)
             DELETE r"""
 
-    await tx.run(q, username=username, removestar=removestar, object_id=object_id, )
+    await tx.run(q, username=username, removestar=removestar, id=object_id, )
 
 
-async def user_report_tx(tx, *, object_id, reason="", _type="Project|Statement|User", ):
+async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User", ):
     _type = _type.capitalize()
-    if _type not in ["Project", "Statement", "User", "Project|Statement|User"]:
+    if _type not in ["Tag", "Statement", "User", "Tag|Statement|User"]:
         raise Exception("Invalid Label value " + _type)
     await tx.run(f"""
             MATCH (o:{_type}{{id:$object_id}})
@@ -56,16 +56,15 @@ async def user_report_tx(tx, *, object_id, reason="", _type="Project|Statement|U
             """, object_id=object_id, message=reason)
 
 
-async def get_user_tx(tx, *, username):
+async def user_get_tx(tx, *, username):
     result = await tx.run("""
             MATCH (c:User{username:$username})
-            RETURN c.disablet as disablet, c.username as username
+            RETURN c.disabled as disabled, c.username as username
         """, username=username)
     try:
         r = await result.single()
-        u = User(**r)
-        print(u)
-        return u
+        return User(**r)
     except Exception as e:
         print(e)
         return None
+

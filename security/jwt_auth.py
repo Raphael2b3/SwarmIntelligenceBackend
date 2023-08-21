@@ -6,11 +6,10 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import Annotated
 
-import controller.users
-import models.user
-from models.user import User
-from const import __SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from services.dbcontroller import get_driver
+from env import __SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from db.dbcontroller import Database as Db
+from db.transactions import user_get_hashed_password_tx, user_get_tx
+from models import User
 
 
 class Token(BaseModel):
@@ -36,10 +35,9 @@ def get_password_hash(password):
 
 
 async def authenticate_user(userdata):
-    print("Authenticate ", userdata.username)
-    async with get_driver().session(database="neo4j") as session:
-        hashed_pw = await session.execute_read(controller.users.user_get_hashed_password_tx, username=userdata.username)
-        print(hashed_pw)
+    async with Db.session() as session:
+        hashed_pw = await session.execute_read(user_get_hashed_password_tx, username=userdata.username)
+
     if not hashed_pw:
         return False
     if not verify_password(userdata.password, hashed_pw):
@@ -61,8 +59,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 async def get_optional_user(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         return await get_current_user(token)
-    except:
-        return models.user.User()
+    finally:
+        return User()
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -81,11 +79,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     except JWTError as e:
         raise credentials_exception
 
-    async with get_driver().session(database="neo4j") as session:
-        user = await session.execute_read(controller.users.get_user_tx, username=token_data.username)
-    if user is None:
+    async with Db.session() as session:
+        db_user: User = await session.execute_read(user_get_tx, username=token_data.username)
+    if db_user is None:
         raise credentials_exception
-    return user
+    return db_user
 
 
 async def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)]):

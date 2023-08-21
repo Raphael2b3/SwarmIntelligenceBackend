@@ -1,23 +1,23 @@
-from contextlib import contextmanager, asynccontextmanager
-import services.dbcontroller as db
-from const import HOST, PORT
+from contextlib import asynccontextmanager
+from db.dbcontroller import Database as Db
+from env import HOST, PORT
 import uvicorn
-from fastapi import Depends, FastAPI
-from routes import default, projects, statements, users, connections
+from fastapi import FastAPI
+from routes import default, tags, statements, users, connections
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    db.init()
+    Db.init()
     # bevor api online
     yield
     # sobald apie offline geht
-    await db.get_driver().close()
+    await Db.close()
 
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(default.router)
-app.include_router(projects.router)
+app.include_router(tags.router)
 app.include_router(statements.router)
 app.include_router(users.router)
 app.include_router(connections.router)
@@ -28,3 +28,6 @@ if __name__ == '__main__':
 #  TODO variablen Benennung, code refactoring
 
 #  TODO doku überarbeiten/ generieren lassen durch uvicorn
+
+
+# TODO beim mergen von zwei Statements müssen Kreise behandelt werden

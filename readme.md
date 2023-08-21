@@ -371,7 +371,7 @@ Sende:
 Erhalte:
 
 {
-
+    "statem"
     "id" = "88",
     "value": "Delphine sind schwule heie ja",
     "w": 0.6,

@@ -18,18 +18,18 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
 
 async def connection_delete_tx(tx, *, connection_id, username):
     await tx.run("""
-            MATCH (c:Connection{id:$connection_id})
+            MATCH (c:Connection{id:$id})
             MATCH (u:User{username:$username})
             WITH *
             WHERE (u)-[:CREATED]->(c) 
             DETACHE DELETE (c)
-            """, connection_id=connection_id, username=username)
+            """, id=connection_id, username=username)
 
 
 async def connection_weight_tx(tx, *, connection_id, is_bad, username):
     await tx.run("""
-        MATCH (c:Connection{id: $connection_id})
+        MATCH (c:Connection{id: $id})
         MATCH (u:User{username:$username})
         MERGE (u)-[r:WEIGHT]->(c)
         SET r.is_bad = $is_bad
-        """, connection_id=connection_id, is_bad=is_bad, username=username)
+        """, id=connection_id, is_bad=is_bad, username=username)

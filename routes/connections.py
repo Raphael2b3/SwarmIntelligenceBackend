@@ -1,45 +1,45 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from models import project, user, connection
-from services.dbcontroller import get_driver
-from services.jwt_auth import get_current_active_user
-import controller as ctrl
+from models import User, CreateConnectionRequest, VoteConnectionRequest, DeleteRequest
+
+from db.dbcontroller import Database as Db
+from db.transactions import connection_create_tx, connection_delete_tx, connection_weight_tx
+from security.jwt_auth import get_current_active_user
 
 router = APIRouter(prefix="/connection", )
 
 
 @router.post("/create")
-async def create(
-        current_user: Annotated[user.User, Depends(get_current_active_user)],
-        body: connection.Connection):
+async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: CreateConnectionRequest):
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
-    async with get_driver().session(database="neo4j") as session:
-        await session.execute_write(ctrl.connections.connection_create_tx, startId=body.stm_start,
-                                    stopId=body.stm_stop,
+
+    async with Db.session() as session:
+        await session.execute_write(connection_create_tx, start_id=body.child_id,
+                                    stopId=body.parent_id,
                                     supports=body.supports,
                                     username=current_user.username)
 
 
-@router.post("/isbad")  # auth
+@router.post("/vote")  # auth
 async def weight(
-        current_user: Annotated[user.User, Depends(get_current_active_user)],
-        body: connection.Connection):
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        body: VoteConnectionRequest):
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
-    async with get_driver().session(database="neo4j") as session:
+    async with Db.session() as session:
         await session.execute_write(
-            ctrl.connections.connection_weight_tx, connectionId=body.id,
-            is_bad=body.is_bad,
+            connection_weight_tx, connection_id=body.id,
+            is_bad=body.value,
             username=current_user.username)
 
 
 @router.post("/delete")
 async def delete(
-        current_user: Annotated[user.User, Depends(get_current_active_user)],
-        body: Any):
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        body: DeleteRequest):
     print(f"DELETE CONNECTION \nBy: {current_user}\nBody: {body}")
-    async with get_driver().session(database="neo4j") as session:
+    async with Db.session() as session:
         await session.execute_write(
-            ctrl.connections.connection_delete_tx, connectionId=body.id,
+            connection_delete_tx, connection_id=body.id,
             username=current_user.username)
