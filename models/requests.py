@@ -1,56 +1,56 @@
 from pydantic import BaseModel
 
 
-class CreateUserRequest(BaseModel):
+class RequestUserCreate(BaseModel):
     username: str
     password: str
 
 
-class CreateTagRequest(BaseModel):
+class RequestTagCreate(BaseModel):
     value: str
 
 
-class CreateStatementRequest(BaseModel):
+class RequestStatementCreate(BaseModel):
     value: str
     tags: list
 
 
-class CreateConnectionRequest(BaseModel):
+class RequestConnectionCreate(BaseModel):
     parent_id: str
     child_id: str
     supports: bool
 
 
-class VoteStatementRequest(BaseModel):
+class RequestStatementVote(BaseModel):
     id: str
     value: str
 
 
-class VoteConnectionRequest(BaseModel):
+class RequestConnectionVote(BaseModel):
     id: str
     value: bool
 
 
-class CreateReportRequest(BaseModel):
+class RequestReportCreate(BaseModel):
     id: str
     value: str
 
 
-class SetStarRequest(BaseModel):
+class RequestStarSet(BaseModel):
     id: str
     value: bool
 
 
-class SetTagRequest(BaseModel):
+class RequestTagSet(BaseModel):
     id: str
     tags: list[str]
 
 
-class DeleteRequest(BaseModel):
+class RequestDelete(BaseModel):
     id: str
 
 
-class SearchStatementRequest(BaseModel):
+class RequestStatementSearch(BaseModel):
     q: str
     tags: list[str]
     results: int
@@ -58,13 +58,13 @@ class SearchStatementRequest(BaseModel):
     # TODO add filter params
 
 
-class SearchTagRequest(BaseModel):
+class RequestTagSearch(BaseModel):
     q: str
     results: int
     skip: int
     # TODO add filter params
 
 
-class ContextRequest(BaseModel):
+class RequestContext(BaseModel):
     id: str
     exclude_ids: list[str]

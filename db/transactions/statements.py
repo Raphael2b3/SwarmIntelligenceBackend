@@ -1,4 +1,3 @@
-from models.context import StatementContext
 from uuid import uuid4
 
 
@@ -30,15 +29,16 @@ async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):  # T
 
 
 async def statement_modify_tag_tx(tx, *, username, statement_id, tags):  # TODO Iterate thru tags with Cypher to
-    # modify multiply tags
-    q = """
+    #  modify multiply tags
+    raise Exception("Not yet implemented")
+    await tx.run("""
             MATCH (u:User{username:$username})
             MATCH (s:Statement{id:$id})
             MATCH (p:Tag{value:$tag})
             WITH *
             WHERE (u)-[:CREATED]->(s)
-    """ + "MATCH (s)-[r:IN]->(p) \r\n DELETE r" if remove else "MERGE (s)-[:IN]->(p)"
-    await tx.run(q, username=username, id=statement_id, tag=tags)
+            
+    """, username=username, id=statement_id, tag=tags)
 
 
 async def statement_vote_tx(tx, *, username, statement_id, vote):

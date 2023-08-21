@@ -1,9 +1,5 @@
 from multiprocessing.pool import AsyncResult
 
-from neo4j import Record
-
-from models.user import User, Vote
-
 
 # TODO Make username in db unique
 async def user_create_tx(tx, *, username, hashed_password):
@@ -67,4 +63,3 @@ async def user_get_tx(tx, *, username):
     except Exception as e:
         print(e)
         return None
-

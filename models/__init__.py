@@ -1,5 +1,5 @@
-from database import User
-from requests import CreateReportRequest, CreateTagRequest, VoteStatementRequest, CreateStatementRequest, \
-    CreateUserRequest, CreateConnectionRequest, DeleteRequest, SearchStatementRequest, ContextRequest, SetTagRequest, \
-    SetStarRequest, SearchTagRequest,VoteConnectionRequest
-from responses import StatementResponse, ConnectionResponse, ContextResponse
+from models.database import User
+from models.requests import RequestReportCreate, RequestTagCreate, RequestStatementVote, RequestStatementCreate, \
+    RequestUserCreate, RequestConnectionCreate, RequestDelete, RequestStatementSearch, RequestContext, RequestTagSet, \
+    RequestStarSet, RequestTagSearch,RequestConnectionVote
+from models.responses import ResponseStatement, ResponseConnection, ResponseContext, ResponseTag

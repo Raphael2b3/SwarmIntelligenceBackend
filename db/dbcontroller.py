@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
-from env import DB_CONNECTION_STRING, DB_PASSWORD, DB_USERNAME
+
 from neo4j import AsyncGraphDatabase, AsyncDriver
+
+from env import DB_CONNECTION_STRING, DB_PASSWORD, DB_USERNAME
 
 # URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
 

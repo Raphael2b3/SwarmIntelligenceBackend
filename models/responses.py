@@ -1,9 +1,9 @@
-from pydantic import BaseModel, computed_field, ConfigDict, Field
+from pydantic import BaseModel
 
 
 #   TODO create good Schemes
 
-class ConnectionResponse(BaseModel):
+class ResponseConnection(BaseModel):
     id: str = None
     stm_parent_id: str = None
     stm_child_id: str = None
@@ -12,7 +12,7 @@ class ConnectionResponse(BaseModel):
     user_voted: int = None
 
 
-class StatementResponse(BaseModel):
+class ResponseStatement(BaseModel):
     id: str = None
     truth: float = None
     arg_connection_ids: list = None
@@ -22,12 +22,12 @@ class StatementResponse(BaseModel):
     user_voted: int = None
 
 
-class TagResponse(BaseModel):
+class ResponseTag(BaseModel):
     id: str = None
     value: str = None
     user_created: bool = None
 
 
-class ContextResponse(BaseModel):
-    statements: list[StatementResponse]
-    connections: list[ConnectionResponse]
+class ResponseContext(BaseModel):
+    statements: list[ResponseStatement]
+    connections: list[ResponseConnection]

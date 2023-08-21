@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
-from db.dbcontroller import Database as Db
-from env import HOST, PORT
+
 import uvicorn
 from fastapi import FastAPI
+
+from db.dbcontroller import Database as Db
+from env import HOST, PORT
 from routes import default, tags, statements, users, connections
 
 

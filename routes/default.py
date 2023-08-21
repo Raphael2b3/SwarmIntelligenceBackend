@@ -1,14 +1,13 @@
 from datetime import timedelta
-from typing import Annotated, Any
+from typing import Annotated
 
-from pydantic import BaseModel
-from typing_extensions import Literal
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from typing_extensions import Literal
 
 from db.dbcontroller import Database as Db
 from db.transactions import user_report_tx, user_modify_star_tx
-from models import CreateReportRequest, User, SetStarRequest
+from models import RequestReportCreate, User, RequestStarSet
 from security.jwt_auth import Token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, \
     get_current_active_user
 
@@ -34,7 +33,7 @@ async def login_for_access_token(credentials: Annotated[OAuth2PasswordRequestFor
 @router.post("{controller}/star")
 async def star(controller: Literal["statement", "project", "user",],
                current_user: Annotated[User, Depends(get_current_active_user)],
-               body: SetStarRequest):
+               body: RequestStarSet):
     async with Db.session() as session:
         await session.execute_write(
             user_modify_star_tx, username=current_user.username, objectid=body.id,
@@ -43,7 +42,7 @@ async def star(controller: Literal["statement", "project", "user",],
 
 @router.post("{controller}/report")
 async def report(controller: Literal["statement", "project", "user"],
-                 body: CreateReportRequest):
+                 body: RequestReportCreate):
     async with Db.session() as session:
         await session.execute_write(
             user_report_tx, objectid=body.id, _type=controller, reason=body.value)
