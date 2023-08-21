@@ -66,7 +66,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids):  # generie
 
     result = await tx.run(""" """, )
 
-    return StatementContext()
+    return None
 
 
 # TODO Evaluate if this is needed

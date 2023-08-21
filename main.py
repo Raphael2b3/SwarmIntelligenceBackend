@@ -27,9 +27,4 @@ app.include_router(connections.router)
 if __name__ == '__main__':
     uvicorn.run(app, host=HOST, port=PORT)
 
-#  TODO variablen Benennung, code refactoring
-
-#  TODO doku überarbeiten/ generieren lassen durch uvicorn
-
-
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden

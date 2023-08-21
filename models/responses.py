@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 
-#   TODO create good Schemes
 
 class ResponseConnection(BaseModel):
     id: str = None
