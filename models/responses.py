@@ -1,32 +1,31 @@
 from pydantic import BaseModel
 
 
-
 class ResponseConnection(BaseModel):
-    id: str = None
-    stm_parent_id: str = None
-    stm_child_id: str = None
-    supports: bool = None
-    user_created: bool = None
-    user_voted: int = None
+    id: str | None = None
+    stm_parent_id: str | None = None
+    stm_child_id: str | None = None
+    supports: bool | None = None
+    user_created: bool | None = None
+    user_voted: int | None = None
 
 
 class ResponseStatement(BaseModel):
-    id: str = None
-    truth: float = None
-    arg_connection_ids: list = None
-    parent_connection_ids: list = None
-    tags: list = None
-    user_created: bool = None
-    user_voted: int = None
+    id: str | None = None
+    truth: float | None = None
+    arg_connection_ids: list | None = None
+    parent_connection_ids: list | None = None
+    tags: list | None = None
+    user_created: bool | None = None
+    user_voted: int | None = None
 
 
 class ResponseTag(BaseModel):
-    id: str = None
-    value: str = None
-    user_created: bool = None
+    id: str | None = None
+    value: str | None = None
+    user_created: bool | None = None
 
 
 class ResponseContext(BaseModel):
-    statements: list[ResponseStatement]
-    connections: list[ResponseConnection]
+    statements: list[ResponseStatement] | None = None
+    connections: list[ResponseConnection] | None = None

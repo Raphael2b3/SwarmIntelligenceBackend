@@ -22,10 +22,11 @@ async def get(body: RequestTagSearch):
 async def create(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagCreate):
-    print(f"CREATE PROJECT \nBy: {current_user}\nBody: {body}")
+    print(f"CREATE TAG \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        await session.execute_write(tag_create_tx, tag=body.value,
-                                    username=current_user.username)
+        r = await session.execute_write(tag_create_tx, tag=body.value,
+                                        username=current_user.username)
+    return r
 
 
 @router.post("/delete")
@@ -34,5 +35,6 @@ async def delete(
         body: RequestDelete):
     print(f"DELETE PROJECT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        await session.execute_write(tag_delete_tx, tag=body.id,
-                                    username=current_user.username)
+        r = await session.execute_write(tag_delete_tx, tag=body.id,
+                                        username=current_user.username)
+    return r

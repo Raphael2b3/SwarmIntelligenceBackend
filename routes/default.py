@@ -35,14 +35,16 @@ async def star(controller: Literal["statement", "project", "user",],
                current_user: Annotated[User, Depends(get_current_active_user)],
                body: RequestStarSet):
     async with Db.session() as session:
-        await session.execute_write(
+        r = await session.execute_write(
             user_modify_star_tx, username=current_user.username, objectid=body.id,
             _type=controller, removestar=body.value)
+    return r
 
 
 @router.post("{controller}/report")
 async def report(controller: Literal["statement", "project", "user"],
                  body: RequestReportCreate):
     async with Db.session() as session:
-        await session.execute_write(
+        r = await session.execute_write(
             user_report_tx, objectid=body.id, _type=controller, reason=body.value)
+    return r

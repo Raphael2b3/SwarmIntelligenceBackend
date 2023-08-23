@@ -10,7 +10,7 @@ from routes import default, tags, statements, users, connections
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Db.init()
+    await Db.init()
     # bevor api online
     yield
     # sobald apie offline geht
@@ -28,3 +28,6 @@ if __name__ == '__main__':
     uvicorn.run(app, host=HOST, port=PORT)
 
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden
+
+# TODO Choose the best fulltext analyzer <= Language Problem
+

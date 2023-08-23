@@ -2,69 +2,69 @@ from pydantic import BaseModel
 
 
 class RequestUserCreate(BaseModel):
-    username: str
-    password: str
+    username: str|None= None
+    password: str|None= None
 
 
 class RequestTagCreate(BaseModel):
-    value: str
+    value: str|None= None
 
 
 class RequestStatementCreate(BaseModel):
-    value: str
-    tags: list
+    value: str|None= None
+    tags: list|None= None
 
 
 class RequestConnectionCreate(BaseModel):
-    parent_id: str
-    child_id: str
-    supports: bool
+    parent_id: str|None= None
+    child_id: str|None= None
+    supports: bool|None= None
 
 
 class RequestStatementVote(BaseModel):
-    id: str
-    value: str
+    id: str|None= None
+    value: str|int|None= None
 
 
 class RequestConnectionVote(BaseModel):
-    id: str
-    value: bool
+    id: str|None= None
+    value: bool|None= None
 
 
 class RequestReportCreate(BaseModel):
-    id: str
-    value: str
+    id: str|None= None
+    value: str|None= None
 
 
 class RequestStarSet(BaseModel):
-    id: str
-    value: bool
+    id: str|None= None
+    value: bool|None= None
 
 
 class RequestTagSet(BaseModel):
-    id: str
-    tags: list[str]
+    id: str|None= None
+    tags: list[str]|None= None
 
 
 class RequestDelete(BaseModel):
-    id: str
+    id: str|None= None
 
 
 class RequestStatementSearch(BaseModel):
-    q: str
-    tags: list[str]
-    results: int
-    skip: int
+    q: str|None = None
+    tags: list[str]|None= None
+    results: int|None= None
+    skip: int|None= None
     # TODO add filter params
 
 
 class RequestTagSearch(BaseModel):
-    q: str
-    results: int
-    skip: int
+    q: str |None= None
+    results: int|None  = None
+    skip: int|None= None
     # TODO add filter params
 
 
 class RequestContext(BaseModel):
-    id: str
-    exclude_ids: list[str]
+    id: str|None= None
+    exclude_ids: list[str]|None= None

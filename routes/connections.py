@@ -15,11 +15,11 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
 
     async with Db.session() as session:
-        await session.execute_write(connection_create_tx, start_id=body.child_id,
-                                    stopId=body.parent_id,
-                                    supports=body.supports,
+        r= await session.execute_write(connection_create_tx, start_id=body.child_id,
+                                    stop_id=body.parent_id,
+                                    is_support=body.supports,
                                     username=current_user.username)
-
+    return r
 
 @router.post("/vote")  # auth
 async def weight(
@@ -27,11 +27,11 @@ async def weight(
         body: RequestConnectionVote):
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        await session.execute_write(
+        r=await session.execute_write(
             connection_weight_tx, connection_id=body.id,
             is_bad=body.value,
             username=current_user.username)
-
+    return r
 
 @router.post("/delete")
 async def delete(
@@ -39,6 +39,7 @@ async def delete(
         body: RequestDelete):
     print(f"DELETE CONNECTION \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        await session.execute_write(
+        r=await session.execute_write(
             connection_delete_tx, connection_id=body.id,
             username=current_user.username)
+    return r
