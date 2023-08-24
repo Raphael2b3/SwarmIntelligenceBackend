@@ -8,7 +8,8 @@ from env import DB_CONNECTION_STRING, DB_PASSWORD, DB_USERNAME
 # URI examples: "neo4j://localhost", "neo4j+s://xxx.databases.neo4j.io"
 
 class IndexesAndConstraints:
-    statementsAndTags = "StatementsAndTags"
+    tagsFullText = "TagsFulltext"
+    statementsFullText = "StatementsFulltext"
     statementId = "StatementId"
     tagId = "TagId"
     connectionId = "ConnectionId"
@@ -22,79 +23,57 @@ class Database:
     DATABASE = "neo4j"
     createIndexes = False
 
+    # For Statements and Tags, the query ensures that a the value is Unique
     @classmethod
     async def create_indexes(cls, session):
         await session.run("""
-                                CREATE FULLTEXT INDEX StatementsAndTags IF NOT EXISTS
-                                FOR (n:Statement|Tag)
-                                ON EACH [n.value]
-                                OPTIONS {
-                                      indexConfig: {
-                                        `fulltext.analyzer`: 'german',
-                                        `fulltext.eventually_consistent`: true
-                                      }
-                                }
-                                """)
-
+                            CREATE FULLTEXT INDEX StatementsFulltext IF NOT EXISTS
+                            FOR (n:Statement|Tag)
+                            ON EACH [n.value]
+                            OPTIONS {
+                                  indexConfig: {
+                                    `fulltext.analyzer`: 'german',
+                                    `fulltext.eventually_consistent`: true
+                                  }
+                            }
+                            """)
         await session.run("""
-                                CREATE RANGE INDEX StatementId IF NOT EXISTS
-                                FOR (n:Statement)
-                                ON (n.id) """)
-
-        await session.run("""
-                                CREATE RANGE INDEX TagId IF NOT EXISTS
-                                FOR (n:Tag)
-                                ON (n.id)""")
-
-        await session.run("""
-                                CREATE RANGE INDEX ConnectionId IF NOT EXISTS
-                                FOR (n:Connection)
-                                ON (n.id)""")
-
-        await session.run("""
-                                CREATE TEXT INDEX Username IF NOT EXISTS
-                                FOR (n:User)
-                                ON (n.username)""")
+                            CREATE FULLTEXT INDEX TagsFulltext IF NOT EXISTS
+                            FOR (n:Statement|Tag)
+                            ON EACH [n.value]
+                            OPTIONS {
+                                  indexConfig: {
+                                    `fulltext.analyzer`: 'german',
+                                    `fulltext.eventually_consistent`: true
+                                  }
+                            }
+                            """)
 
     @classmethod
     async def create_constraints(cls, session):
-        await session.run("""
-                                CREATE FULLTEXT INDEX StatementsAndTags IF NOT EXISTS
-                                FOR (n:Statement|Tag)
-                                ON EACH [n.value]
-                                OPTIONS {
-                                      indexConfig: {
-                                        `fulltext.analyzer`: 'german',
-                                        `fulltext.eventually_consistent`: true
-                                      }
-                                }
-                                """)
 
         await session.run("""
-                                CREATE RANGE INDEX StatementId IF NOT EXISTS
-                                FOR (n:Statement)
-                                ON (n.id) """)
+                CREATE CONSTRAINT StatementId IF NOT EXISTS
+                FOR (a:Statement) REQUIRE a.id IS UNIQUE """)
 
         await session.run("""
-                                CREATE RANGE INDEX TagId IF NOT EXISTS
-                                FOR (n:Tag)
-                                ON (n.id)""")
+                CREATE CONSTRAINT TagId IF NOT EXISTS
+                FOR (a:Tag) REQUIRE a.id IS UNIQUE """)
 
         await session.run("""
-                                CREATE RANGE INDEX ConnectionId IF NOT EXISTS
-                                FOR (n:Connection)
-                                ON (n.id)""")
+                CREATE CONSTRAINT ConnectionId IF NOT EXISTS
+                FOR (a:Connection) REQUIRE a.id IS UNIQUE """)
 
         await session.run("""
-                                CREATE TEXT INDEX Username IF NOT EXISTS
-                                FOR (n:User)
-                                ON (n.username)""")
+                CREATE CONSTRAINT Username
+                FOR (a:User) REQUIRE a.id IS UNIQUE """)
 
     @classmethod
     async def init(cls):
         cls.driver = AsyncGraphDatabase.driver(uri=cls.URI, auth=cls.AUTH, database=cls.DATABASE)
         if not cls.createIndexes: return
         async with cls.session() as session:
+            await cls.create_constraints(session)
             await cls.create_indexes(session)
 
     @classmethod

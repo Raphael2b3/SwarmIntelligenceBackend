@@ -18,22 +18,19 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     """
     r = await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
     success = await r.value()
-    return "connection created successfully" if success[
-        0] else "Error: statement may not exist, connection already exists or argument cicle"
+    return "connection created successfully" if success else "Error: statement may not exist, connection already exists or argument cicle"
 
 
 async def connection_delete_tx(tx, *, connection_id, username):
     r = await tx.run("""
             MATCH (c:Connection{id:$id})
             MATCH (u:User{username:$username})
-            WITH *
             WHERE (u)-[:CREATED]->(c) 
             DETACH DELETE (c)
             RETURN 1
             """, id=connection_id, username=username)
     success = await r.value()
-    return "connection deleted successfully" if success[
-        0] else "Error: connection may not exist, you are not creator of connection"
+    return "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
 
 
 async def connection_weight_tx(tx, *, connection_id, is_bad, username):
@@ -45,6 +42,5 @@ async def connection_weight_tx(tx, *, connection_id, is_bad, username):
         RETURN 1
         """, id=connection_id, is_bad=is_bad, username=username)
     success = await r.value()
-    return "connection weighted successfully" if success[
-        0] else "Error: connection may not exist"
+    return "connection weighted successfully" if success else "Error: connection may not exist"
 

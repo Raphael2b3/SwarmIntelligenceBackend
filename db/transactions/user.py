@@ -1,38 +1,35 @@
 from multiprocessing.pool import AsyncResult
 
 
-# TODO Make username in db unique
 from neo4j import ResultSummary
 
 from models import User
 
 
 async def user_create_tx(tx, *, username, hashed_password):
-    print("suc", username, hashed_password)
     r = await tx.run(""" 
-    PROFILE
-    MERGE (c:User{username:$username})
-    WITH c 
-    SET c.hashed_password = $hashed_password
+        MERGE (c:User{username:$username})
+        ON CREATE 
+            SET c.hashed_password = $hashed_password
+        RETURN 1
     """, username=username, hashed_password=hashed_password)
 
-    summary: ResultSummary = await r.consume()
-    return summary.profile
+    success = await r.value()
+    return "user created successfully" if success else "Error: Tag may not exist, you are not creator of statement"
 
 
 # TODO IF bookmarks work, use it here as well
 async def user_delete_tx(tx, username):
     r = await tx.run("""
-    PROFILE
         MATCH (c:User{username:$username})
         DETACH DELETE c""", username=username)
 
     summary: ResultSummary = await r.consume()
     return summary.profile
 
+
 async def user_get_hashed_password_tx(tx, username):
     result: AsyncResult = await tx.run("""
-    PROFILE
         MATCH (c:User{username:$username})
         RETURN c.hashed_password
     """, username=username)
@@ -74,6 +71,18 @@ async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User"
 
 async def user_get_tx(tx, *, username):
     result = await tx.run("""
+            MATCH (c:User{username:$username})
+            RETURN c.disabled as disabled, c.username as username
+        """, username=username)
+    try:
+        r = await result.single()
+        return User(**r)
+    except Exception as e:
+        print(e)
+        return None
+
+async def user_changepassword_tx(tx, *, username):
+    result = await tx.run("""
     PROFILE
             MATCH (c:User{username:$username})
             RETURN c.disabled as disabled, c.username as username
@@ -84,3 +93,4 @@ async def user_get_tx(tx, *, username):
     except Exception as e:
         print(e)
         return None
+
