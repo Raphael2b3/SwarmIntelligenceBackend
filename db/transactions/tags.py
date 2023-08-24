@@ -27,13 +27,17 @@ async def tag_delete_tx(tx, *, tag, username):
     return "tags deleted successfully" if success else "Error: Tag may not exist, you are not creator of statement"
 
 
-async def tag_get_many_tx(tx, query_string, n_results=10,skip=0):
+async def tag_get_many_tx(tx, query_string, n_results=10, skip=0):
+    print("tag get", query_string, n_results, skip)
+    await tx.run("""
+                CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
+                """)
     result = await tx.run("""
             CALL db.index.fulltext.queryNodes($index, $query_string,{
                 skip:$skip,
                 limit:$limit
             }) YIELD node, score
             return node.value as value, node.id as id
-            """, query_string=query_string,index=IndexesAndConstraints.statementsFullText,limit=n_results,skip=skip)
+            """, query_string=query_string, index=IndexesAndConstraints.tagsFullText, limit=n_results, skip=skip)
 
     return [dict(record) for record in await result.fetch(n_results)]

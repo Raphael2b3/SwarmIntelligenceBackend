@@ -12,7 +12,7 @@ router = APIRouter(prefix="/tag", )
 
 @router.post("/", response_model=list[ResponseTag])
 async def get(body: RequestTagSearch):
-    print(f"GET PROJECT \nBy: Anyone\nBody: {body}")
+    print(f"GET TAG \nBy: Anyone\nBody: {body}")
     async with Db.session() as session:
         result = await session.execute_read(tag_get_many_tx, query_string=body.q)
     return result
@@ -33,7 +33,7 @@ async def create(
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestDelete):
-    print(f"DELETE PROJECT \nBy: {current_user}\nBody: {body}")
+    print(f"DELETE TAG \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
         r = await session.execute_write(tag_delete_tx, tag=body.id,
                                         username=current_user.username)

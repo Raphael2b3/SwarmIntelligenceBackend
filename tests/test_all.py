@@ -11,7 +11,7 @@ import security.jwt_auth as auth
 
 import sys
 from neo4j.debug import watch
-watch("neo4j", out=sys.stdout)
+#watch("neo4j", out=sys.stdout)
 
 STATEMENT = TAG = USERNAME = PASSWORD = "test"
 STATEMENT_SEARCH = STATEMENT2 = TAG_SEARCH = "t"
@@ -23,7 +23,7 @@ pytest_plugins = ('pytest_asyncio',)
 
 
 def converter(o):
-    return o["args"]["string-representation"]
+    return o
 
 
 def ident(o): return o
@@ -58,7 +58,7 @@ async def test_app():
     await test("creating Tag",
                lambda: tagroute.create(current_user=user, body=tagroute.RequestTagCreate(value=TAG)))
 
-    tags = await test("finding Tag", lambda: tagroute.get(body=tagroute.RequestTagSearch(q=TAG_SEARCH)), ident)
+    tags = await test("finding Tag", lambda: tagroute.get(body=tagroute.RequestTagSearch(q=TAG_SEARCH+" "+TAG)), ident)
 
     await test("creating Statement",
                lambda: statementroute.create(current_user=user,
@@ -69,13 +69,13 @@ async def test_app():
                                                                         value=STATEMENT2, tags=[TAG])))
     statements = await test("getting Statements", lambda: statementroute.get(current_user=user,
                                                                              body=statementroute.RequestStatementSearch(
-                                                                                 q=STATEMENT_SEARCH, tags=[TAG])),
+                                                                                 q=TAG_SEARCH+" "+TAG, tags=[TAG])),
                             ident)
 
     await test("modifying Statement Tag", lambda: statementroute.modify_tag(current_user=user,
                                                                             body=statementroute.RequestTagSet(
                                                                                 id=statements[1]["id"],
-                                                                                tags=[])))
+                                                                                tags=["test"])))
 
     await test("voting Statement", lambda: statementroute.vote(current_user=user,
                                                                body=statementroute.RequestStatementVote(
@@ -88,7 +88,6 @@ async def test_app():
                                                                        child_id=statements[1]["id"],
                                                                        supports=True)))
 
-    # TODO Should fail
     await test("create Connection", lambda: connectionroute.create(current_user=user,
                                                                    body=connectionroute.RequestConnectionCreate(
                                                                        parent_id=statements[1]["id"],
@@ -104,14 +103,14 @@ async def test_app():
                                                                      parent_id=statements[1]["id"],
                                                                      child_id=statements[0]["id"],
                                                                      supports=False)))
-    return
+
     # star
     # report
-    await test("delete Connection", lambda: connectionroute.delete(current_user=user,
-                                                                   body=connectionroute.RequestDelete(id="")))
+    # await test("delete Connection", lambda: connectionroute.delete(current_user=user,
+     #                                                              body=connectionroute.RequestDelete(id="")))
     print("deleting Statements")
     for stm in statements:
-        await test(stm["value"], lambda: statementroute.delete(current_user=user,
+        await test("DELETE: "+stm["value"], lambda: statementroute.delete(current_user=user,
                                                                body=statementroute.RequestDelete(id=stm["id"])))
 
     await test("deleting Tag",

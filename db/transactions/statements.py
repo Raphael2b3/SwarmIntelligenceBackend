@@ -23,13 +23,18 @@ async def statement_delete_tx(tx, *, statement_id, username):
             MATCH (p:Statement{id:$id})<-[:CREATED]-(:User{username:$username})
             WITH p
             DETACH DELETE p
-            RETURN
+            RETURN 1 
             """, id=statement_id, username=username)
     success = await r.value()
     return "statement deleted successfully" if success else "Error: statement may not exist, you are not creator of statement"
 
 
 async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
+    print("statement get", query_string, n_results, skip)
+    await tx.run("""
+                    CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
+                    """)
+
     result = await tx.run("""
             CALL db.index.fulltext.queryNodes($index, $query_string,{
                 skip:$skip,
@@ -41,20 +46,30 @@ async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
 
 
 async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
+    print("Modify tag", username, statement_id, tags)
     r = await tx.run("""
             MATCH (:User{username:$username})-[:CREATED]->(s:Statement{id:$id})
-            OPTIONAL MATCH (s)-[r:TAGGED]->(t:Tag{value:tag})
-            WITH *, range(0,size(t)) as indexes, $tags as new_tags
-            UNWIND indexes as i
-                WHERE t[i].value NOT IN new_tags
-                DELETE r[i]
+            OPTIONAL MATCH (s)-[r:TAGGED]->(t:Tag)
+            WITH s,t, collect(t) as ts, collect(r) as rs
+            WITH rs,ts,s,t, range(0,size(ts)-1) as indexes, $tags as new_tags
+            CALL{
+                WITH rs,ts,indexes,new_tags
+                UNWIND indexes as i
+                WITH rs,ts,i,new_tags
+                WHERE NOT ts[i].value IN new_tags
+                DELETE rs[i]
+            }
+            CALL{
+            WITH t,s, new_tags
             WITH s, new_tags, collect(t.value) as old
             UNWIND new_tags as tag
-                WHERE tag not in old
+                WITH s,tag,old
+                WHERE NOT tag IN old
                 MATCH (q:Tag{value:tag})
                 CREATE (s)-[:Tagged]->(q)
+            }
             RETURN 1
-    """, username=username, id=statement_id, tag=tags)
+    """, username=username, id=statement_id, tags=tags)
     success = await r.value()
     return "tags modified successfully" if success else "Error: statement may not exist, you are not creator of statement, tag may not exist"
 
@@ -92,7 +107,7 @@ async def calc_w():
 
 # TODO make it work: get_context
 async def statement_get_context_tx(tx, *, statement_id, exclude_ids):  # generiere context
-
+    return 1
     r = await tx.run("""PROFILE 
         MATCH (s:Statement{id:$statement_id})
         UNWIND [1,2,3,4,5] as x

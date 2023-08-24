@@ -43,7 +43,7 @@ async def delete(
         body: RequestDelete):
     print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        r=await session.execute_write(statement_delete_tx, statement_id=body.id,
+        r = await session.execute_write(statement_delete_tx, statement_id=body.id,
                                     username=current_user.username)
     return r
 
@@ -51,7 +51,7 @@ async def delete(
 async def modify_tag(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagSet):
-    print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
+    print(f"MODIFY TAG \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
         r=await session.execute_write(statement_modify_tag_tx,
                                     username=current_user.username,
@@ -62,7 +62,7 @@ async def modify_tag(
 async def vote(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestStatementVote):
-    print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
+    print(f"VOTE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
         r=await session.execute_write(statement_vote_tx,
                                     username=current_user.username,

@@ -25,7 +25,7 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
 async def weight(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestConnectionVote):
-    print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
+    print(f"VOTE CONNECTION \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
         r=await session.execute_write(
             connection_weight_tx, connection_id=body.id,
