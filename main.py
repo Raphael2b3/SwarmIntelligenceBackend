@@ -24,7 +24,8 @@ app.include_router(tags.router)
 app.include_router(statements.router)
 app.include_router(users.router)
 app.include_router(connections.router)
-app.add_middleware(CORSMiddleware, allow_origins = ['*'], allow_credentials = True, allow_methods = ['*'], allow_headers = ['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'],
+                   allow_headers=['*'])
 
 if __name__ == '__main__':
     uvicorn.run(app, host=HOST, port=PORT)
@@ -33,3 +34,4 @@ if __name__ == '__main__':
 
 # TODO Choose the best fulltext analyzer <= Language Problem
 
+# TODO Recommendations
