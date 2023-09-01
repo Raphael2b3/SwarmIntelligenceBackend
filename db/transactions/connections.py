@@ -33,14 +33,14 @@ async def connection_delete_tx(tx, *, connection_id, username):
     return "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
 
 
-async def connection_weight_tx(tx, *, connection_id, is_bad, username):
+async def connection_weight_tx(tx, *, connection_id, weight, username):
     r = await tx.run("""
         MATCH (c:Connection{id: $id})
         MATCH (u:User{username:$username})
-        MERGE (u)-[r:WEIGHT]->(c)
-        SET r.is_bad = $is_bad
+        MERGE (u)-[r:VOTED]->(c)
+        SET r.value = $weight
         RETURN 1
-        """, id=connection_id, is_bad=is_bad, username=username)
+        """, id=connection_id, weight=weight, username=username)
     success = await r.value()
     return "connection weighted successfully" if success else "Error: connection may not exist"
 

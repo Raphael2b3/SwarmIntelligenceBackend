@@ -29,7 +29,7 @@ async def weight(
     async with Db.session() as session:
         r=await session.execute_write(
             connection_weight_tx, connection_id=body.id,
-            is_bad=body.value,
+            weight=body.value,
             username=current_user.username)
     return r
 

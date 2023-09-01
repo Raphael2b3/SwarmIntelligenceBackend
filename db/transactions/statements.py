@@ -1,3 +1,4 @@
+import math
 from uuid import uuid4
 
 # ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
@@ -85,49 +86,3 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
     success = await r.value()
     return "voted successfully" if success else "Error: statement may not exist, you are not creator of statement"
 
-
-# TODO calculate Truth-Value with txs
-async def calc_w():
-    q = """
-    PROFILE
-    MATCH (p:Statement)
-    WHERE NOT (p)<--(:Connection)
-    WITH p
-    MATCH (p)-[:HAS]->(:Connection)-->(i:Statement)
-    WITH *
-    """
-    r = None
-    return
-
-    summary: ResultSummary = await r.consume()
-    return summary.profile
-
-
-# TODO user notifactions to improve all queries
-
-# TODO make it work: get_context
-async def statement_get_context_tx(tx, *, statement_id, exclude_ids):  # generiere context
-    return 1
-    r = await tx.run("""PROFILE 
-        MATCH (s:Statement{id:$statement_id})
-        UNWIND [1,2,3,4,5] as x
-        return x as A
-        UNION
-        MATCH (s)-[:HAS]->(c:Connection)-->(d:Statement)
-        RETURN d as A
-        
-    """, statement_id=statement_id)
-    print("HAHAHSXXSAD:::    ", *[dict(s for s in await r.fetch(100))])
-    summary: ResultSummary = await r.consume()
-    return summary.profile
-
-
-""" 
-async def statement_get_full_context_tx(tx, *, statement_id, username, parent_gens=1, n_parents=3, skip_parents=0,
-                                        child_gens=1,
-                                        n_children=8, skip_children=0, ):  # generiere context
-
-    result = await tx.run(""" """, )
-
-    return StatementContext()
-"""
