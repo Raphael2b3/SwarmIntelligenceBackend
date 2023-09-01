@@ -81,7 +81,7 @@ async def user_get_tx(tx, *, username):
         return None
 
 
-async def user_changepassword_tx(tx, *, username, password):
+async def user_change_password_tx(tx, *, username, password):
     result = await tx.run("""
             MATCH (c:User{username:$username})
             SET c.hashed_password = $hashed_pw

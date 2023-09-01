@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from db.dbcontroller import Database as Db
-from db.transactions import user_create_tx, user_delete_tx, user_changepassword_tx
+from db.transactions import user_create_tx, user_delete_tx, user_change_password_tx
 from models import User, RequestUserCreate, RequestUserPasswordChange
 from security.jwt_auth import get_current_active_user, get_password_hash
 
@@ -34,5 +34,5 @@ async def change_password(
         current_user: Annotated[User, Depends(get_current_active_user)],body: RequestUserPasswordChange):
     print(f"DELETE USER \nBy: {current_user}\nBody: {current_user}")
     async with Db.session() as session:
-        r = await session.execute_write(user_changepassword_tx, username=current_user.username,password=body.value)
+        r = await session.execute_write(user_change_password_tx, username=current_user.username, password=body.value)
     return r

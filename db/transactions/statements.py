@@ -86,3 +86,11 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
     success = await r.value()
     return "voted successfully" if success else "Error: statement may not exist, you are not creator of statement"
 
+
+async def statement_get_context_tx(tx, *, statement_id):
+    r = await tx.run("""
+    
+    """, id=statement_id)
+    success = await r.value()
+    success = True
+    return "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
