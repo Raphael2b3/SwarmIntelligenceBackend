@@ -7,7 +7,7 @@ from neo4j import ResultSummary
 from db.dbcontroller import IndexesAndConstraints
 
 
-async def statement_create_tx(tx, *, text, username, ):
+async def statement_create_tx(tx, *, text, username, ):  #  TODO Inlcude Tags
     r = await tx.run("""
         MATCH (u:User{username:$username})
         OPTIONAL MATCH (p:Statement{value:$text})
