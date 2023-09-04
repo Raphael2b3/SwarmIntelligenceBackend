@@ -15,7 +15,7 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
 
     async with Db.session() as session:
-        r= await session.execute_write(connection_create_tx, start_id=body.child_id,
+        r = await session.execute_write(connection_create_tx, start_id=body.child_id,
                                     stop_id=body.parent_id,
                                     is_support=body.supports,
                                     username=current_user.username)

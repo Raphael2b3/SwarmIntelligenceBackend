@@ -32,7 +32,7 @@ class RequestStatementVote(BaseModel):
 
 class RequestConnectionVote(BaseModel):
     id: str | None = None
-    value: bool | None = None
+    value: bool | float | None = None
 
 
 class RequestReportCreate(BaseModel):

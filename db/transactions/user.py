@@ -4,17 +4,32 @@ from neo4j import ResultSummary
 
 from models import User
 
+from builtins import print as _print
+
+
+def print(*args, **kwargs):
+    _print("TX: ", *args, "\n", **kwargs)
+
 
 async def user_create_tx(tx, *, username, hashed_password):
     r = await tx.run(""" 
-        MERGE (c:User{username:$username})
-        ON CREATE 
-            SET c.hashed_password = $hashed_password
-        RETURN 1
-    """, username=username, hashed_password=hashed_password)
-
+            MATCH (c:User{username:$username})
+            RETURN 1
+        """, username=username)
     success = await r.value()
-    return "user created successfully" if success else "Error: Tag may not exist, you are not creator of statement"
+    log = "Error: Username is already used by someone else"
+    if not success:
+        r = await tx.run(""" 
+            MERGE (c:User{username:$username})
+            ON CREATE 
+                SET c.hashed_password = $hashed_password
+            RETURN 1
+        """, username=username, hashed_password=hashed_password)
+        success = await r.value()
+
+        log = "user created successfully" if success else "Error: Fatal Internal Error"
+    print(log)
+    return log
 
 
 async def user_delete_tx(tx, username):
@@ -24,7 +39,9 @@ async def user_delete_tx(tx, username):
         RETURN 1""", username=username)
 
     success = await r.value()
-    return "user deleted successfully" if success else "Error:  you are not the User"
+    log = "user deleted successfully" if success else "Error: you are not the User"
+    print(log)
+    return log
 
 
 async def user_get_hashed_password_tx(tx, username):
@@ -50,7 +67,9 @@ async def user_modify_star_tx(tx, *, username, object_id, _type="Tag|Statement|U
 
     r = await tx.run(q, username=username, removestar=removestar, id=object_id, )
     success = await r.value()
-    return "star modified successfully" if success else "Error: Tag|Statement|User may not exist"
+    log = "star modified successfully" if success else "Error: Tag|Statement|User may not exist"
+    print(log)
+    return log
 
 
 async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User", ):
@@ -65,7 +84,9 @@ async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User"
             RETURN 1
             """, object_id=object_id, message=reason)
     success = await r.value()
-    return "X reported successfully" if success else "Error: X may not exist"
+    log = "reported successfully" if success else "Error: id may not exist"
+    print(log)
+    return log
 
 
 async def user_get_tx(tx, *, username):
@@ -89,4 +110,6 @@ async def user_change_password_tx(tx, *, username, password):
         """, username=username, hashed_pw=password)
 
     success = await result.value()
-    return "password changed successfully " if success else "Error: You are not the User"
+    log = "password changed successfully " if success else "Error: You are not the User"
+    print(log)
+    return log

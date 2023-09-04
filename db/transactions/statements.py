@@ -1,22 +1,44 @@
 import math
+
 from uuid import uuid4
 
 # ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
-from neo4j import ResultSummary
+from neo4j import ResultSummary, AsyncResult
 
 from db.dbcontroller import IndexesAndConstraints
+from models.responses import DefaultResponse
+
+from builtins import print as _print
 
 
-async def statement_create_tx(tx, *, text, username, ):  #  TODO Inlcude Tags
-    r = await tx.run("""
-        MATCH (u:User{username:$username})
-        OPTIONAL MATCH (p:Statement{value:$text})
-        WITH p, u WHERE p IS NULL
-        MERGE (u)-[:CREATED]->(:Statement{value:$text,id:$id})
-        RETURN 1
-        """, text=text, username=username, id=str(uuid4()))
-    success = await r.value()
-    return "statement created successfully" if success else "Error: statement already exist"
+def print(*args, **kwargs):
+    _print("TX: ", *args, "\n", **kwargs)
+
+
+async def statement_create_tx(tx, *, text, username, ):  # TODO Inlcude Tags
+    r: AsyncResult = await tx.run("""
+        OPTIONAL MATCH (s:Statement{value:$text})
+        CALL{
+            WITH s
+            WITH s
+            WHERE s IS NOT NULL
+            RETURN s.id as id,  FALSE as created 
+        UNION
+            WITH s
+            WITH s 
+            WHERE s IS NULL
+            MATCH (u:User{username:$username})
+            CREATE (u)-[:CREATED]->(:Statement{value:$text,id: $new_id})
+            RETURN $new_id as id, TRUE as created
+            }
+        RETURN *
+        """, text=text, username=username, new_id=str(uuid4()))
+
+    success = await r.single()
+    log = "statement created successfully" if success[
+        "created"] else "Error: statement may not exist, connection already exists or argument cicle"
+    print(log)
+    return DefaultResponse(message=log, value=success["id"])
 
 
 async def statement_delete_tx(tx, *, statement_id, username):
@@ -27,7 +49,9 @@ async def statement_delete_tx(tx, *, statement_id, username):
             RETURN 1 
             """, id=statement_id, username=username)
     success = await r.value()
-    return "statement deleted successfully" if success else "Error: statement may not exist, you are not creator of statement"
+    log = "statement deleted successfully" if success else "Error: statement may not exist, you are not creator of statement"
+    print(log)
+    return log
 
 
 async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
@@ -72,7 +96,9 @@ async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
             RETURN 1
     """, username=username, id=statement_id, tags=tags)
     success = await r.value()
-    return "tags modified successfully" if success else "Error: statement may not exist, you are not creator of statement, tag may not exist"
+    log = "tags modified successfully" if success else "Error: statement may not exist, you are not creator of statement, tag may not exist"
+    print(log)
+    return log
 
 
 async def statement_vote_tx(tx, *, username, statement_id, vote):
@@ -84,13 +110,17 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
             RETURN 1
     """, username=username, id=statement_id, vote=vote)
     success = await r.value()
-    return "voted successfully" if success else "Error: statement may not exist, you are not creator of statement"
+    log = "voted successfully" if success else "Error: statement may not exist, you are not creator of statement"
+    print(log)
+    return log
 
 
-async def statement_get_context_tx(tx, *, statement_id):
+async def statement_get_context_tx(tx, *, statement_id, exclude_ids):
     r = await tx.run("""
     
     """, id=statement_id)
     success = await r.value()
     success = True
-    return "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
+    log = "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
+    print(log)
+    return log

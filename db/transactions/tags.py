@@ -4,6 +4,12 @@ from neo4j import ResultSummary
 
 from db.dbcontroller import IndexesAndConstraints
 
+from builtins import print as _print
+
+
+def print(*args, **kwargs):
+    _print("TX: ", *args, "\n", **kwargs)
+
 
 async def tag_create_tx(tx, *, tag, username):
     r = await tx.run("""
@@ -14,7 +20,9 @@ async def tag_create_tx(tx, *, tag, username):
     RETURN 1
     """, tag=tag, username=username, id=str(uuid4()))
     success = await r.value()
-    return "tags created successfully" if success else "Error: Tag already exists"
+    log = "tags created successfully" if success else "Error: Tag already exists"
+    print(log)
+    return log
 
 
 async def tag_delete_tx(tx, *, tag, username):
@@ -24,7 +32,9 @@ async def tag_delete_tx(tx, *, tag, username):
         RETURN 1
         """, tag=tag, username=username)
     success = await r.value()
-    return "tags deleted successfully" if success else "Error: Tag may not exist, you are not creator of statement"
+    log = "tags deleted successfully" if success else "Error: Tag may not exist, you are not creator of statement"
+    print(log)
+    return log
 
 
 async def tag_get_many_tx(tx, query_string, n_results=10, skip=0):

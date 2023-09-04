@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -29,3 +31,8 @@ class ResponseTag(BaseModel):
 class ResponseContext(BaseModel):
     statements: list[ResponseStatement] | None = None
     connections: list[ResponseConnection] | None = None
+
+
+class DefaultResponse(BaseModel):
+    message: str = ""
+    value: Any = None

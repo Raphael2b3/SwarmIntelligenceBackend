@@ -17,7 +17,7 @@ router = APIRouter(prefix="/statement", )
 async def get(current_user: Annotated[User, Depends(get_optional_user)], body: RequestStatementSearch):
     print(f"GET STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        result = await session.execute_read(statement_get_many_tx, query_string=body.q,)
+        result = await session.execute_read(statement_get_many_tx, query_string=body.q, )
     return result
 
 
@@ -25,17 +25,19 @@ async def get(current_user: Annotated[User, Depends(get_optional_user)], body: R
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        r=await session.execute_write(statement_create_tx, text=body.value,
-                                    username=current_user.username)
+        r = await session.execute_write(statement_create_tx, text=body.value,
+                                        username=current_user.username)
     return r
+
 
 @router.post("/context", response_model=ResponseContext)
 async def get_context(current_user: Annotated[User, Depends(get_optional_user)], body: RequestContext):
     print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
 
     async with Db.session() as session:
-        r=await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids, )
+        r = await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids, )
     return r
+
 
 @router.post("/delete", )
 async def delete(
@@ -44,8 +46,9 @@ async def delete(
     print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
         r = await session.execute_write(statement_delete_tx, statement_id=body.id,
-                                    username=current_user.username)
+                                        username=current_user.username)
     return r
+
 
 @router.post("/tag")
 async def modify_tag(
@@ -53,10 +56,11 @@ async def modify_tag(
         body: RequestTagSet):
     print(f"MODIFY TAG \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        r=await session.execute_write(statement_modify_tag_tx,
-                                    username=current_user.username,
-                                    statement_id=body.id, tags=body.tags)
+        r = await session.execute_write(statement_modify_tag_tx,
+                                        username=current_user.username,
+                                        statement_id=body.id, tags=body.tags)
     return r
+
 
 @router.post("/vote")
 async def vote(
@@ -64,7 +68,7 @@ async def vote(
         body: RequestStatementVote):
     print(f"VOTE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        r=await session.execute_write(statement_vote_tx,
-                                    username=current_user.username,
-                                    statement_id=body.id, vote=body.value)
+        r = await session.execute_write(statement_vote_tx,
+                                        username=current_user.username,
+                                        statement_id=body.id, vote=body.value)
     return r

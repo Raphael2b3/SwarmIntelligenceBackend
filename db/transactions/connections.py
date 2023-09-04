@@ -1,7 +1,17 @@
 from uuid import uuid4
 
-from neo4j import ResultSummary
+from neo4j import ResultSummary, AsyncResult
 
+from models.responses import DefaultResponse
+
+from builtins import print as _print
+
+
+def print(*args, **kwargs):
+    _print("TX: ", *args, "\n", **kwargs)
+
+
+# TODO return DefaultResponse everytime
 
 async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     support_str = "SUPPORTS" if is_support else "OPPOSES"
@@ -9,16 +19,31 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     MATCH (a:Statement{{id:$start_id}}) 
     MATCH (b:Statement{{id:$stop_id}})
     WITH a, b
-    WHERE NOT (b)-[*]->(a) AND NOT (a)-[:HAS]->(:Connection)-[:SUPPORTS|OPPOSES]->(b)
-    CREATE (a)-[:HAS]->(c:Connection{{id:$new_id}})-[:{support_str}]->(b)
-    WITH c
-    MATCH (u:User{{username:$username}})
-    CREATE (u)-[:CREATED]->(c)
-    RETURN 1
+    WHERE NOT (b)-[*]->(a)
+    OPTIONAL MATCH (a)-[:HAS]->(c:Connection)-[:SUPPORTS|OPPOSES]->(b)
+    CALL{{
+            WITH c
+            WITH c
+            WHERE c IS NOT NULL
+            RETURN c.id as id,  FALSE as created 
+        UNION
+            WITH *
+            WITH * 
+            WHERE c IS NULL
+            CREATE (a)-[:HAS]->(n:Connection{{id:$new_id}})-[:{support_str}]->(b)
+            WITH n
+            MATCH (u:User{{username:$username}})
+            CREATE (u)-[:CREATED]->(n)
+            RETURN $new_id as id, TRUE as created
+    }}
+    RETURN *
     """
-    r = await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
-    success = await r.value()
-    return "connection created successfully" if success else "Error: statement may not exist, connection already exists or argument cicle"
+    r: AsyncResult = await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
+    success = await r.single()
+    log = "connection created successfully" if success[
+        "created"] else "Error: statement may not exist, connection already exists or argument cicle"
+    print(log)
+    return DefaultResponse(message=log, value=success["id"])
 
 
 async def connection_delete_tx(tx, *, connection_id, username):
@@ -30,7 +55,9 @@ async def connection_delete_tx(tx, *, connection_id, username):
             RETURN 1
             """, id=connection_id, username=username)
     success = await r.value()
-    return "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
+    log = "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
+    print(log)
+    return log
 
 
 async def connection_weight_tx(tx, *, connection_id, weight, username):
@@ -42,5 +69,6 @@ async def connection_weight_tx(tx, *, connection_id, weight, username):
         RETURN 1
         """, id=connection_id, weight=weight, username=username)
     success = await r.value()
-    return "connection weighted successfully" if success else "Error: connection may not exist"
-
+    log = "connection weighted successfully" if success else "Error: connection may not exist"
+    print(log)
+    return log
