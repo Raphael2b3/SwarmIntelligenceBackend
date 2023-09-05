@@ -1,0 +1,9 @@
+name: Run PyTest Tests
+on: [push]
+jobs:
+	test:
+ 		runs-on: ubuntu-latest
+   		steps:
+	 	- name: Push
+   		  run: echo "hi"  
+	
