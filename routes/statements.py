@@ -5,15 +5,16 @@ from fastapi import APIRouter, Depends
 from db.dbcontroller import Database as Db
 from db.transactions import statement_create_tx, statement_delete_tx, statement_get_many_tx, statement_get_context_tx, \
     statement_vote_tx, statement_modify_tag_tx
-from models import User, ResponseStatement, RequestStatementSearch, RequestStatementCreate, ResponseContext, \
+from models import User, Statement, RequestStatementSearch, RequestStatementCreate, Context, \
     RequestContext, \
     RequestDelete, RequestTagSet, RequestStatementVote
+from models.responses import Response
 from security.jwt_auth import get_current_active_user, get_optional_user
 
 router = APIRouter(prefix="/statement", )
 
 
-@router.post("/", response_model=list[ResponseStatement])
+@router.post("/", response_model=Response[list[Statement]])
 async def get(current_user: Annotated[User, Depends(get_optional_user)], body: RequestStatementSearch):
     print(f"GET STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
@@ -21,7 +22,7 @@ async def get(current_user: Annotated[User, Depends(get_optional_user)], body: R
     return result
 
 
-@router.post("/create")
+@router.post("/create",response_model=Response[Statement])
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
@@ -30,7 +31,7 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
     return r
 
 
-@router.post("/context", response_model=ResponseContext)
+@router.post("/context", response_model=Response[Context])
 async def get_context(current_user: Annotated[User, Depends(get_optional_user)], body: RequestContext):
     print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
 
@@ -39,7 +40,7 @@ async def get_context(current_user: Annotated[User, Depends(get_optional_user)],
     return r
 
 
-@router.post("/delete", )
+@router.post("/delete", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestDelete):
@@ -50,7 +51,7 @@ async def delete(
     return r
 
 
-@router.post("/tag")
+@router.post("/tag",response_model=Response)
 async def modify_tag(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagSet):
@@ -62,7 +63,7 @@ async def modify_tag(
     return r
 
 
-@router.post("/vote")
+@router.post("/vote",response_model=Response)
 async def vote(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestStatementVote):

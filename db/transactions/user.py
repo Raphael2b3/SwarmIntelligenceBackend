@@ -6,6 +6,8 @@ from models import User
 
 from builtins import print as _print
 
+from models.responses import Response
+
 
 def print(*args, **kwargs):
     _print("TX: ", *args, "\n", **kwargs)
@@ -29,7 +31,7 @@ async def user_create_tx(tx, *, username, hashed_password):
 
         log = "user created successfully" if success else "Error: Fatal Internal Error"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def user_delete_tx(tx, username):
@@ -41,7 +43,7 @@ async def user_delete_tx(tx, username):
     success = await r.value()
     log = "user deleted successfully" if success else "Error: you are not the User"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def user_get_hashed_password_tx(tx, username):
@@ -69,7 +71,7 @@ async def user_modify_star_tx(tx, *, username, object_id, _type="Tag|Statement|U
     success = await r.value()
     log = "star modified successfully" if success else "Error: Tag|Statement|User may not exist"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User", ):
@@ -86,7 +88,7 @@ async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User"
     success = await r.value()
     log = "reported successfully" if success else "Error: id may not exist"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def user_get_tx(tx, *, username):
@@ -112,4 +114,4 @@ async def user_change_password_tx(tx, *, username, password):
     success = await result.value()
     log = "password changed successfully " if success else "Error: You are not the User"
     print(log)
-    return log
+    return Response(message=log)

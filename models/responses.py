@@ -1,9 +1,16 @@
-from typing import Any
+from typing import Any, TypeVar, Generic
 
 from pydantic import BaseModel
 
+T = TypeVar('T')
 
-class ResponseConnection(BaseModel):
+
+class Response(BaseModel, Generic[T]):
+    message: str = ""
+    value: T | None = None
+
+
+class Connection(BaseModel):
     id: str | None = None
     stm_parent_id: str | None = None
     stm_child_id: str | None = None
@@ -12,8 +19,9 @@ class ResponseConnection(BaseModel):
     user_voted: int | None = None
 
 
-class ResponseStatement(BaseModel):
+class Statement(BaseModel):
     id: str | None = None
+    value: str | None = None
     truth: float | None = None
     arg_connection_ids: list | None = None
     parent_connection_ids: list | None = None
@@ -22,17 +30,12 @@ class ResponseStatement(BaseModel):
     user_voted: int | None = None
 
 
-class ResponseTag(BaseModel):
+class Tag(BaseModel):
     id: str | None = None
     value: str | None = None
     user_created: bool | None = None
 
 
-class ResponseContext(BaseModel):
-    statements: list[ResponseStatement] | None = None
-    connections: list[ResponseConnection] | None = None
-
-
-class DefaultResponse(BaseModel):
-    message: str = ""
-    value: Any = None
+class Context(BaseModel):
+    statements: list[Statement] | None = None
+    connections: list[Connection] | None = None

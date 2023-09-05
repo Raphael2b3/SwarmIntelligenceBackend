@@ -39,3 +39,4 @@ if __name__ == '__main__':
 # TODO Choose the best fulltext analyzer <= Language Problem
 
 # TODO Recommendations
+

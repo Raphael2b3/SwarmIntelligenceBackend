@@ -6,7 +6,7 @@ from uuid import uuid4
 from neo4j import ResultSummary, AsyncResult
 
 from db.dbcontroller import IndexesAndConstraints
-from models.responses import DefaultResponse
+from models.responses import Response, Statement
 
 from builtins import print as _print
 
@@ -15,30 +15,30 @@ def print(*args, **kwargs):
     _print("TX: ", *args, "\n", **kwargs)
 
 
-async def statement_create_tx(tx, *, text, username, ):  # TODO Inlcude Tags
+async def statement_create_tx(tx, *, text, username, tags=()):  # TODO Inlcude Tags
     r: AsyncResult = await tx.run("""
         OPTIONAL MATCH (s:Statement{value:$text})
         CALL{
             WITH s
             WITH s
             WHERE s IS NOT NULL
-            RETURN s.id as id,  FALSE as created 
+            RETURN s.id as id,  FALSE as user_created
         UNION
             WITH s
             WITH s 
             WHERE s IS NULL
             MATCH (u:User{username:$username})
             CREATE (u)-[:CREATED]->(:Statement{value:$text,id: $new_id})
-            RETURN $new_id as id, TRUE as created
+            RETURN $new_id as id, TRUE as user_created
             }
-        RETURN *
+        RETURN DISTINCT *
         """, text=text, username=username, new_id=str(uuid4()))
 
     success = await r.single()
     log = "statement created successfully" if success[
-        "created"] else "Error: statement may not exist, connection already exists or argument cicle"
+        "user_created"] else "Error: statement may not exist, connection already exists or argument cicle"
     print(log)
-    return DefaultResponse(message=log, value=success["id"])
+    return Response(message=log, value=Statement(**dict(success), value=text))
 
 
 async def statement_delete_tx(tx, *, statement_id, username):
@@ -51,7 +51,7 @@ async def statement_delete_tx(tx, *, statement_id, username):
     success = await r.value()
     log = "statement deleted successfully" if success else "Error: statement may not exist, you are not creator of statement"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
@@ -61,13 +61,22 @@ async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
                     """)
 
     result = await tx.run("""
-            CALL db.index.fulltext.queryNodes($index, $query_string,{
-                skip:$skip,
-                limit:$limit
-            }) YIELD node, score
-            return node.value as value, node.id as id
+                CALL{
+                    CALL db.index.fulltext.queryNodes($index, $query_string,{
+                        skip:$skip,
+                        limit:$limit
+                    }) YIELD node, score
+                    return node.value as value, node.id as id
+                UNION
+                    MATCH (a:Statement)
+                    WHERE a.value CONTAINS $query_string
+                    RETURN a.value as value, a.id as id
+                }
+                RETURN *
+            
             """, query_string=query_string, limit=n_results, skip=skip, index=IndexesAndConstraints.statementsFullText)
-    return [dict(record) for record in await result.fetch(n_results)]
+    log = "success"
+    return Response(message=log, value=[dict(record) for record in await result.fetch(n_results)])
 
 
 async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
@@ -98,7 +107,7 @@ async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
     success = await r.value()
     log = "tags modified successfully" if success else "Error: statement may not exist, you are not creator of statement, tag may not exist"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def statement_vote_tx(tx, *, username, statement_id, vote):
@@ -112,10 +121,10 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
     success = await r.value()
     log = "voted successfully" if success else "Error: statement may not exist, you are not creator of statement"
     print(log)
-    return log
+    return Response(message=log)
 
 
-async def statement_get_context_tx(tx, *, statement_id, exclude_ids):
+async def statement_get_context_tx(tx, *, statement_id, exclude_ids):  # TODO make get context work with exclude_ids
     r = await tx.run("""
     
     """, id=statement_id)
@@ -123,4 +132,4 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids):
     success = True
     log = "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
     print(log)
-    return log
+    return Response(message=log)

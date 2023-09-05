@@ -21,7 +21,7 @@ class Database:
     URI = DB_CONNECTION_STRING
     AUTH = (DB_USERNAME, DB_PASSWORD)
     DATABASE = "neo4j"
-    createIndexes = False
+    createIndexes = True
 
     # For Statements and Tags, the query ensures that a the value is Unique
     @classmethod

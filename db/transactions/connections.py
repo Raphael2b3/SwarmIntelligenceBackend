@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from neo4j import ResultSummary, AsyncResult
 
-from models.responses import DefaultResponse
+from models.responses import Response
 
 from builtins import print as _print
 
@@ -10,8 +10,6 @@ from builtins import print as _print
 def print(*args, **kwargs):
     _print("TX: ", *args, "\n", **kwargs)
 
-
-# TODO return DefaultResponse everytime
 
 async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     support_str = "SUPPORTS" if is_support else "OPPOSES"
@@ -43,7 +41,7 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     log = "connection created successfully" if success[
         "created"] else "Error: statement may not exist, connection already exists or argument cicle"
     print(log)
-    return DefaultResponse(message=log, value=success["id"])
+    return Response[str](message=log, value=success["id"])
 
 
 async def connection_delete_tx(tx, *, connection_id, username):
@@ -57,7 +55,7 @@ async def connection_delete_tx(tx, *, connection_id, username):
     success = await r.value()
     log = "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
     print(log)
-    return log
+    return Response(message=log)
 
 
 async def connection_weight_tx(tx, *, connection_id, weight, username):
@@ -71,4 +69,4 @@ async def connection_weight_tx(tx, *, connection_id, weight, username):
     success = await r.value()
     log = "connection weighted successfully" if success else "Error: connection may not exist"
     print(log)
-    return log
+    return Response(message=log)

@@ -1,10 +1,9 @@
-neo4j>=5.11.0
-pytest>=7.4.0
+neo4j>=5.12.0
+pytest>=7.4.1
 python-dotenv>=1.0.0
 pydantic>=2.3.0
 passlib>=1.7.4
-fastapi[all]>=0.101.1
+fastapi[all]>=0.103.1
 python-jose[cryptography]
 uvicorn[standard]>=0.23.2
-python-jose[cryptography]
 passlib[bcrypt]

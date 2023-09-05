@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends
 
 from db.dbcontroller import Database as Db
 from db.transactions import tag_get_many_tx, tag_create_tx, tag_delete_tx
-from models import RequestTagSearch, User, RequestTagCreate, RequestDelete, ResponseTag
+from models import RequestTagSearch, User, RequestTagCreate, RequestDelete, Tag
+from models.responses import Response
 from security.jwt_auth import get_current_active_user
 
 router = APIRouter(prefix="/tag", )
 
 
-@router.post("/", response_model=list[ResponseTag])
+@router.post("/", response_model=Response[list[Tag]])
 async def get(body: RequestTagSearch):
     print(f"GET TAG \nBy: Anyone\nBody: {body}")
     async with Db.session() as session:
@@ -18,7 +19,7 @@ async def get(body: RequestTagSearch):
     return result
 
 
-@router.post("/create")
+@router.post("/create", response_model=Response[Tag])
 async def create(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagCreate):
@@ -29,7 +30,7 @@ async def create(
     return r
 
 
-@router.post("/delete")
+@router.post("/delete", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestDelete):

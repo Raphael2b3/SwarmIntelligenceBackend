@@ -8,6 +8,7 @@ from typing_extensions import Literal
 from db.dbcontroller import Database as Db
 from db.transactions import user_report_tx, user_modify_star_tx
 from models import RequestReportCreate, User, RequestStarSet
+from models.responses import Response
 from security.jwt_auth import Token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, \
     get_current_active_user
 
@@ -30,7 +31,7 @@ async def login_for_access_token(credentials: Annotated[OAuth2PasswordRequestFor
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("{controller}/star")
+@router.post("{controller}/star",response_model=Response)
 async def star(controller: Literal["statement", "project", "user",],
                current_user: Annotated[User, Depends(get_current_active_user)],
                body: RequestStarSet):
@@ -41,7 +42,7 @@ async def star(controller: Literal["statement", "project", "user",],
     return r
 
 
-@router.post("{controller}/report")
+@router.post("{controller}/report",response_model=Response)
 async def report(controller: Literal["statement", "project", "user"],
                  body: RequestReportCreate):
     async with Db.session() as session:

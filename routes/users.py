@@ -5,12 +5,13 @@ from fastapi import APIRouter, Depends
 from db.dbcontroller import Database as Db
 from db.transactions import user_create_tx, user_delete_tx, user_change_password_tx
 from models import User, RequestUserCreate, RequestUserPasswordChange
+from models.responses import Response
 from security.jwt_auth import get_current_active_user, get_password_hash
 
 router = APIRouter(prefix="/user", )
 
 
-@router.post("/create")
+@router.post("/create", response_model=Response)
 async def create(
         body: RequestUserCreate):
     print(f"CREATE USER \nBody: {body}")
@@ -20,7 +21,7 @@ async def create(
     return r
 
 
-@router.post("/delete")
+@router.post("/delete", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)]):
     print(f"DELETE USER \nBy: {current_user}\nBody: {current_user}")
@@ -29,9 +30,9 @@ async def delete(
     return r
 
 
-@router.post("/changepassword")
+@router.post("/changepassword", response_model=Response)
 async def change_password(
-        current_user: Annotated[User, Depends(get_current_active_user)],body: RequestUserPasswordChange):
+        current_user: Annotated[User, Depends(get_current_active_user)], body: RequestUserPasswordChange):
     print(f"DELETE USER \nBy: {current_user}\nBody: {current_user}")
     async with Db.session() as session:
         r = await session.execute_write(user_change_password_tx, username=current_user.username, password=body.value)
