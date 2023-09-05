@@ -1,19 +1,17 @@
 name: Run PyTest Tests
 on: [push]
 jobs:
-	 set_up_db:
- 		- runs-on: ubuntu-latest
-	 steps:
-		- run: echo "To Implement, integrate neo4j instance"
-	
  	 set_up_enviroment:
-		- runs-on: ubuntu-18.04
+		runs-on: ubuntu-18.04
 		steps:	
-			- uses: actions/checkout@v3
-			- uses: actions/setup-python@v4
+  			- name: step1
+			  uses: actions/checkout@v3
+			
+   			- name: step2
+			  uses: actions/setup-python@v4
 				with:
 					python-version: '3.10'
 		 	- name: Install dependencies
-			- run: pip install -r requirements.txt
+			  run: pip install -r requirements.txt
 			- run: pytest
 	 
