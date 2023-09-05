@@ -36,7 +36,7 @@ async def test(title, func, conv=converter):
     assert r
     return r
 
-
+# TODO run tests thru http for possible fast api thrown errors
 @pytest.mark.asyncio
 async def test_app():
     Db.URI = TEST_URI
