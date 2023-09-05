@@ -1,17 +1,13 @@
 name: Run PyTest Tests
 on: [push]
 jobs:
- 	 set_up_enviroment:
-		runs-on: ubuntu-18.04
-		steps:	
-  			- name: step1
-			  uses: actions/checkout@v3
+  test:
+    name: somthing
+		runs-on: ubuntu-latest
+		steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+        python-version: '3.10' 
+      - run: python my_script.py
 			
-   			- name: step2
-			  uses: actions/setup-python@v4
-				with:
-					python-version: '3.10'
-		 	- name: Install dependencies
-			  run: pip install -r requirements.txt
-			- run: pytest
-	 
