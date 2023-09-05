@@ -72,7 +72,7 @@ async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
                     WHERE a.value CONTAINS $query_string
                     RETURN a.value as value, a.id as id
                 }
-                RETURN *
+                RETURN DISTINCT *
             
             """, query_string=query_string, limit=n_results, skip=skip, index=IndexesAndConstraints.statementsFullText)
     log = "success"

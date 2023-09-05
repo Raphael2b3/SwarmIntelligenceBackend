@@ -45,11 +45,18 @@ async def tag_get_many_tx(tx, query_string, n_results=10, skip=0):
                 CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
                 """)
     result = await tx.run("""
-            CALL db.index.fulltext.queryNodes($index, $query_string,{
-                skip:$skip,
-                limit:$limit
-            }) YIELD node, score
-            return node.value as value, node.id as id
+            CALL{
+                    CALL db.index.fulltext.queryNodes($index, $query_string,{
+                        skip:$skip,
+                        limit:$limit
+                    }) YIELD node, score
+                    return node.value as value, node.id as id
+                UNION
+                    MATCH (a:Tag)
+                    WHERE a.value CONTAINS $query_string
+                    RETURN a.value as value, a.id as id
+                }
+                RETURN DISTINCT *
             """, query_string=query_string, index=IndexesAndConstraints.tagsFullText, limit=n_results, skip=skip)
     log = "success"
     return Response(message=log, value=[dict(record) for record in await result.fetch(n_results)])
