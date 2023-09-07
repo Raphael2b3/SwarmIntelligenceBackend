@@ -10,7 +10,6 @@ from models.responses import Response, Statement
 
 from builtins import print as _print
 
-
 def print(*args, **kwargs):
     _print("TX: ", *args, "\n", **kwargs)
 

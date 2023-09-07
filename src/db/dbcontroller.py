@@ -71,7 +71,7 @@ class Database:
     @classmethod
     async def init(cls):
         cls.driver = AsyncGraphDatabase.driver(uri=cls.URI, auth=cls.AUTH, database=cls.DATABASE)
-        if not cls.createIndexes: return
+        if not cls.createIndexes: return print("Didn't try to createIndex")
         async with cls.session() as session:
             await cls.create_constraints(session)
             await cls.create_indexes(session)

@@ -1,16 +1,12 @@
-import asyncio
 import pytest
-import routes.users
-from db.dbcontroller import Database as Db
-import routes.users as userroute
-import routes.default as defaultroute
-import routes.tags as tagroute
-import routes.statements as statementroute
-import routes.connections as connectionroute
-import security.jwt_auth as auth
+from src.db.dbcontroller import Database as Db
+import src.routes.users as userroute
+import src.routes.default as defaultroute
+import src.routes.tags as tagroute
+import src.routes.statements as statementroute
+import src.routes.connections as connectionroute
+import src.security.jwt_auth as auth
 
-import sys
-from neo4j.debug import watch
 #watch("neo4j", out=sys.stdout)
 
 STATEMENT = TAG = USERNAME = PASSWORD = "test"

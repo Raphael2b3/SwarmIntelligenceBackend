@@ -1,4 +1,3 @@
-import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -15,7 +14,7 @@ async def lifespan(app: FastAPI):
     await Db.init()
     # bevor api online
     yield
-    # sobald apie offline geht
+    # sobald api offline geht
     await Db.close()
 
 
@@ -32,6 +31,14 @@ if __name__ == '__main__':
     # import tests.create_example_db, asyncio
     # asyncio.run(tests.create_example_db.main())
 
+    import httpx
+    a = httpx.Client().get("http://172.17.0.2:5555")
+    print(a.text)
+    import socket
+    hostname = socket.gethostname()
+    IPAddr = socket.gethostbyname(hostname)
+    print("Your Computer Name is:" + hostname)
+    print("Your Computer IP Address is:" + IPAddr)
     uvicorn.run(app, host=HOST, port=PORT)
 
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden
@@ -40,4 +47,4 @@ if __name__ == '__main__':
 
 # TODO Recommendations
 
-# TODO Add CI/CD Pipeline validation
+# TODO Add CI/CD Pipeline

@@ -1,16 +1,10 @@
 import asyncio
 
-import env
+from src import env
 from db.dbcontroller import Database as Db
-import routes.users as userroute
-import routes.default as defaultroute
-import routes.tags as tagroute
-import routes.statements as statementroute
-import routes.connections as connectionroute
-import security.jwt_auth as auth
-
-import sys
-from neo4j.debug import watch
+import src.routes.users as userroute
+import src.routes.statements as statementroute
+import src.routes.connections as connectionroute
 
 # watch("neo4j", out=sys.stdout)
 
