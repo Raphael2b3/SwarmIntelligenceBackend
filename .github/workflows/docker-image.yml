@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v3
     - run: ls
     - name: Build the Docker image
-      run: docker build -f productoin.Dockerfile -t raphel2b3/swarmintelligencebackend:$(date +%s)
+      run: docker build --f productoin.Dockerfile --t raphel2b3/swarmintelligencebackend:$(date +%s)
