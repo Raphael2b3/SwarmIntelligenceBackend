@@ -14,5 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - run: ls
     - name: Build the Docker image
       run: docker build . --file ./productoin.Dockerfile --tag raphel2b3/swarmintelligencebackend:$(date +%s)
