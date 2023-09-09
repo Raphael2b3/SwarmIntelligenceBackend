@@ -1,10 +1,7 @@
-FROM python:alpine
+FROM raphael2b3/swarmintelligencebackend:base
 LABEL authors="Raphael2b3"
 WORKDIR /app
-ADD production.requirements.txt ./
 
-RUN pip install -r production.requirements.txt
-
-RUN rm -f ./production.requirements.txt
+ADD src/ ./
 
 CMD ["python", "main.py"]
