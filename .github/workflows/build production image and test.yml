@@ -70,5 +70,5 @@ jobs:
       - name: Load image
         run: |
           docker pull raphael2b3/swarmintelligencebackend:test
-          docker image ls -a 
+          docker run raphael2b3/swarmintelligencebackend:test
           
