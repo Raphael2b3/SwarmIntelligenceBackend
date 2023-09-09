@@ -1,4 +1,4 @@
-name: Base Backend Image
+name: Create Base Backend Image
 
 on:
   workflow_dispatch:
