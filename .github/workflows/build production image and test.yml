@@ -1,11 +1,13 @@
-name: Create Base Backend Image
+
+name: Create Production Backend Image and test
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
     
 jobs:
   build-base:
-    name: Push base-image to Docker Hub
+    name: Push production image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -22,13 +24,13 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: raphael2b3/swarmintelligencebackend
-          tags: base
+          tags: production
       - name: Find Files
         run: ls
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./base.Dockerfile
+          file: ./production.Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
