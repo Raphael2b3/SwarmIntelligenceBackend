@@ -31,9 +31,6 @@ if __name__ == '__main__':
     # import tests.create_example_db, asyncio
     # asyncio.run(tests.create_example_db.main())
 
-    import httpx
-    a = httpx.Client().get("http://172.17.0.2:5555")
-    print(a.text)
     import socket
     hostname = socket.gethostname()
     IPAddr = socket.gethostbyname(hostname)
