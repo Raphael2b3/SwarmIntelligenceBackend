@@ -30,7 +30,6 @@ jobs:
         with:
           context: .
           file: ./base.Dockerfile
-          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,dest=/tmp/basebackend.tar
