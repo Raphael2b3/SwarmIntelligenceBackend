@@ -32,9 +32,3 @@ jobs:
           file: ./base.Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/basebackend.tar
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: basebackend
-          path: /tmp/basebackend.tar
