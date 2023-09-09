@@ -5,4 +5,4 @@ WORKDIR /app
 ADD src/ ./src
 WORKDIR ./src
 
-CMD ["python", "main.py"]
+CMD ["python", "test_all.py"]
