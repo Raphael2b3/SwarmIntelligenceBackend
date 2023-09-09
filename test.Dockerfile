@@ -9,5 +9,6 @@ RUN pip install -r test.requirements.txt
 RUN rm -f ./test.requirements.txt
 
 WORKDIR ./tests
+RUN ls
 
 CMD ["pytest"]
