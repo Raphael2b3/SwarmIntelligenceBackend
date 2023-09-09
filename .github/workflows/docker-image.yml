@@ -10,8 +10,8 @@ on:
     
     
 jobs:
-  build:
-    name: Push Docker image to Docker Hub
+  build-base:
+    name: Push base-image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -39,4 +39,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      
+          outputs: type=docker,dest=/tmp/basebackend.tar
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: basebackend
+          path: /tmp/basebackend.tar
