@@ -4,6 +4,9 @@ name: Create Production Backend Image and test
 on:
   push:
     branches: [master]
+  
+  workflow_dispatch:
+    
     
 jobs:
   build-production:
