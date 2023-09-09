@@ -55,7 +55,7 @@ async def test_app():
                lambda: tagroute.create(current_user=user, body=tagroute.RequestTagCreate(value=TAG)))
 
     tags = await test("finding Tag", lambda: tagroute.get(body=tagroute.RequestTagSearch(q=TAG_SEARCH+" "+TAG)), ident)
-
+    tags = tags.value
     await test("creating Statement",
                lambda: statementroute.create(current_user=user,
                                              body=statementroute.RequestStatementCreate(value=STATEMENT,
@@ -67,7 +67,7 @@ async def test_app():
                                                                              body=statementroute.RequestStatementSearch(
                                                                                  q=TAG_SEARCH+" "+TAG, tags=[TAG])),
                             ident)
-
+    statements = statements.value
     await test("modifying Statement Tag", lambda: statementroute.modify_tag(current_user=user,
                                                                             body=statementroute.RequestTagSet(
                                                                                 id=statements[1]["id"],

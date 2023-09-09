@@ -38,10 +38,9 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     """
     r: AsyncResult = await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
     success = await r.single()
-    log = "connection created successfully" if success[
-        "created"] else "Error: statement may not exist, connection already exists or argument cicle"
+    log = "connection created successfully" if success and success["created"] else "Error: statement may not exist, connection already exists or argument cicle"
     print(log)
-    return Response[str](message=log, value=success["id"])
+    return Response[str](message=log, value=success["id"] if success else None)
 
 
 async def connection_delete_tx(tx, *, connection_id, username):

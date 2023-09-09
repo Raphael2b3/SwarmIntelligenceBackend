@@ -124,6 +124,7 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
 
 
 async def statement_get_context_tx(tx, *, statement_id, exclude_ids):  # TODO make get context work with exclude_ids
+    return Response(message="NOT YET IMPLEMENTED")
     r = await tx.run("""
     
     """, id=statement_id)
