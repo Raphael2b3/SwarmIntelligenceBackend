@@ -1,11 +1,11 @@
 import pytest
-from src.db.dbcontroller import Database as Db
-import src.routes.users as userroute
-import src.routes.default as defaultroute
-import src.routes.tags as tagroute
-import src.routes.statements as statementroute
-import src.routes.connections as connectionroute
-import src.security.jwt_auth as auth
+from db.dbcontroller import Database as Db
+import routes.users as userroute
+import routes.default as defaultroute
+import routes.tags as tagroute
+import routes.statements as statementroute
+import routes.connections as connectionroute
+import security.jwt_auth as auth
 
 #watch("neo4j", out=sys.stdout)
 
@@ -35,11 +35,10 @@ async def test(title, func, conv=converter):
 # TODO run tests thru http for possible fast api thrown errors
 @pytest.mark.asyncio
 async def test_app():
-    return True
-    Db.URI = TEST_URI
+    """ Db.URI = TEST_URI
     Db.AUTH = TEST_AUTH
     Db.DATABASE = TEST_DB
-    Db.createIndexes = True
+    Db.createIndexes = True"""
     await Db.init()
 
     await test("db connectivity and auth...", lambda: Db.driver.verify_authentication(), ident)

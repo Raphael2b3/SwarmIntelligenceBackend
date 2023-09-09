@@ -6,3 +6,5 @@ fastapi[all]>=0.103.1
 python-jose[cryptography]
 uvicorn[standard]>=0.23.2
 passlib[bcrypt]
+pytest>=7.4.1
+pytest-asyncio
