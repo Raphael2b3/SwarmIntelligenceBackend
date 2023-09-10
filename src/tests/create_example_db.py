@@ -21,7 +21,7 @@ async def create_all_statements():
     for a in "ABCDEFG":
         id = await statementroute.create(current_user=users[0],
                                          body=statementroute.RequestStatementCreate(value=a, tags=[a.lower()]))
-        statement_ids[a] = id.value
+        statement_ids[a] = id.value.id
     return statement_ids
 
 

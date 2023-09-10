@@ -1,4 +1,6 @@
 import pytest
+from starlette.testclient import TestClient
+
 from db.dbcontroller import Database as Db
 import routes.users as userroute
 import routes.default as defaultroute
