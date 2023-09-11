@@ -129,8 +129,8 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
     # TODO make it to Customfunction jar
     # return Response(message="NOT YET IMPLEMENTED")
     r = await tx.run("""
-        MATCH (a:Statement) WHERE a.id = $id
-        OPTIONAL MATCH (u:User) WHERE u.username = $username
+                MATCH (a:Statement) WHERE a.id = "9a3bb07a-571c-4b79-8888-9388641534bb"
+        OPTIONAL MATCH (u:User) WHERE u.username="1"
         
         /// ROOT 
             
@@ -187,7 +187,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
         OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
-        WITH a, u, root_stm, arg_connections + collect({
+        WITH a, u, root_stm, arg_connections ,arg_connections + collect({
             id:cParent.id, 
             stm_parent_id:sParent.id,
             stm_child_id:a.id,
@@ -220,7 +220,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         OPTIONAL MATCH (u)-[uc:CREATED]->(sArg)
         OPTIONAL MATCH (u)-[r:VOTED]->(sArg)
         
-        WITH sArg, u, uc, r, cArgs, cParents, tags,apoc.coll.union(
+        WITH sArg, u, uc, r, cArgs, cParents, root_stm, tags,apoc.coll.union(
             collect({ 
                     id:sArg.id, 
                     value:sArg.value,
@@ -240,7 +240,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg)
         OPTIONAL MATCH (u)-[r2:VOTED]->(cArg)
         
-        WITH sArg, u, ARG_stm, apoc.coll.union(collect({
+        WITH sArg, u, ARG_stm,root_connections, apoc.coll.union(collect({
             id:cArg.id, 
             stm_parent_id:sArg.id,
             stm_child_id:sArg2.id,
@@ -258,7 +258,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
         OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
-        WITH sArg, u, ARG_stm, apoc.coll.union(arg_connections, collect({
+        WITH sArg, u, ARG_stm,arg_connections, apoc.coll.union(arg_connections, collect({
             id:cParent.id, 
             stm_parent_id:sParent.id,
             stm_child_id:sArg.id,
@@ -302,7 +302,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
                     tags:tags,
                     user_created:uc IS NOT NULL,
                     user_voted:r.value
-                }), ARG_stm) as statements, ARG_connections
+                }), ARG_stm) as statements, ARG_connections,ARG_stm
 
 
         // arg_connections
@@ -319,7 +319,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
             supports:TYPE(argSup) = "SUPPORTS",
             user_created:uc2 IS NOT NULL,
             user_voted:r2.value
-        }),ARG_connections) as arg_connections
+        }),ARG_connections) as arg_connections, ARG_connections
 
         
         
@@ -330,7 +330,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
         OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
-        WITH sParent, u, statements, apoc.coll.union(arg_connections, collect({
+        WITH sParent, u, statements,arg_connections, apoc.coll.union(arg_connections, collect({
             id:cParent.id, 
             stm_parent_id:sParent2.id,
             stm_child_id:sParent.id,
