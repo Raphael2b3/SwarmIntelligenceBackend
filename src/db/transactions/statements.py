@@ -129,7 +129,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
     # TODO make it to Customfunction jar
     # return Response(message="NOT YET IMPLEMENTED")
     r = await tx.run("""
-                MATCH (a:Statement) WHERE a.id = "9a3bb07a-571c-4b79-8888-9388641534bb"
+        MATCH (a:Statement) WHERE a.id = "9a3bb07a-571c-4b79-8888-9388641534bb"
         OPTIONAL MATCH (u:User) WHERE u.username="1"
         
         /// ROOT 
@@ -343,12 +343,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
 
         RETURN collect(statements) as statements, collect(connections) as connections
 
-
-
-
-
-
-    """, id=statement_id)
+      """, id=statement_id)
     success = await r.value()
     success = True
     log = "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
