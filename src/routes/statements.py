@@ -18,11 +18,12 @@ router = APIRouter(prefix="/statement", )
 async def get(current_user: Annotated[User, Depends(get_optional_user)], body: RequestStatementSearch):
     print(f"GET STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        result = await session.execute_read(statement_get_many_tx, query_string=body.q, )
+        result = await session.execute_read(statement_get_many_tx, query_string=body.q, n_results=body.results,
+                                            skip=body.skip, tags=body.tags)
     return result
 
 
-@router.post("/create",response_model=Response[Statement])
+@router.post("/create", response_model=Response[Statement])
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
@@ -36,7 +37,8 @@ async def get_context(current_user: Annotated[User, Depends(get_optional_user)],
     print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
 
     async with Db.session() as session:
-        r = await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids, )
+        r = await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids,
+                                       username=current_user.username)
     return r
 
 
@@ -51,7 +53,7 @@ async def delete(
     return r
 
 
-@router.post("/tag",response_model=Response)
+@router.post("/tag", response_model=Response)
 async def modify_tag(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagSet):
@@ -63,7 +65,7 @@ async def modify_tag(
     return r
 
 
-@router.post("/vote",response_model=Response)
+@router.post("/vote", response_model=Response)
 async def vote(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestStatementVote):

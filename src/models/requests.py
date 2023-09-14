@@ -57,14 +57,14 @@ class RequestDelete(BaseModel):
 class RequestStatementSearch(BaseModel):
     q: str | None = None
     tags: list[str] | None = None
-    results: int | None = None
+    results: int = 10
     skip: int | None = None
     # TODO add filter params
 
 
 class RequestTagSearch(BaseModel):
     q: str | None = None
-    results: int | None = None
+    results: int = 10
     skip: int | None = None
     # TODO add filter params
 

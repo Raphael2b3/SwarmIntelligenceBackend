@@ -15,7 +15,8 @@ router = APIRouter(prefix="/tag", )
 async def get(body: RequestTagSearch):
     print(f"GET TAG \nBy: Anyone\nBody: {body}")
     async with Db.session() as session:
-        result = await session.execute_read(tag_get_many_tx, query_string=body.q)
+        result = await session.execute_read(tag_get_many_tx, query_string=body.q, n_results=body.results,
+                                            skip=body.skip)
     return result
 
 

@@ -54,8 +54,8 @@ async def statement_delete_tx(tx, *, statement_id, username):
     return Response(message=log)
 
 
-async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0):
-    print("statement get", query_string, n_results, skip)
+async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0, tags=()):
+    print("statement get", query_string, n_results, skip, tags)  # TODO filter by tags
     await tx.run("""
                     CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
                     """)
@@ -125,9 +125,9 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
 
 
 async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
-                                   username):  # TODO make get context work with exclude_ids
-    # TODO make it to Customfunction jar
-    # return Response(message="NOT YET IMPLEMENTED")
+                                   username):  # TODO work with exclude_ids
+    # TODO make it to custom function jar
+
     r = await tx.run("""
         MATCH (a:Statement) WHERE a.id = $id     // find root statement
         OPTIONAL MATCH (u:User) WHERE u.username=$username // find optional user
