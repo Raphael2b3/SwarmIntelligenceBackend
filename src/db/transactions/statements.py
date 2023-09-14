@@ -3,10 +3,10 @@ import math
 from uuid import uuid4
 
 # ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
-from neo4j import ResultSummary, AsyncResult
+from neo4j import ResultSummary, AsyncResult, Record
 
 from db.dbcontroller import IndexesAndConstraints
-from models.responses import Response, Statement
+from models.responses import Response, Statement, Context
 
 from builtins import print as _print
 
@@ -363,9 +363,14 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
 
 
 
-      """, id=statement_id)
-    success = await r.value()
-    success = True
-    log = "NOT YET IMPLEMENTED" if success else "Error: statement may not exist"
+      """, id=statement_id, username=username)
+    try:
+        rec: Record | dict = await r.single(strict=True)
+        log = "Success"
+
+    except Exception as e:
+        rec = {"connections": None, "statements": None}
+        print(e)
+        log = "Error: Getting context failed statement may not exist"
     print(log)
-    return Response(message=log)
+    return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
