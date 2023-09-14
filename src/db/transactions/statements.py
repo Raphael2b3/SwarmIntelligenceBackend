@@ -129,219 +129,239 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
     # TODO make it to Customfunction jar
     # return Response(message="NOT YET IMPLEMENTED")
     r = await tx.run("""
-        MATCH (a:Statement) WHERE a.id = "9a3bb07a-571c-4b79-8888-9388641534bb"
-        OPTIONAL MATCH (u:User) WHERE u.username="1"
+        MATCH (a:Statement) WHERE a.id = $id     // find root statement
+        OPTIONAL MATCH (u:User) WHERE u.username=$username // find optional user
         
         /// ROOT 
             
         // statement
-
-        OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)
         
-        WITH a, u, collect(cArg.id) as cArgs
+        OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
         
-        OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)
+        WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
         
-        WITH a, u, cArgs, collect(cParent.id) as cParents
+        OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
         
-        OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)
-        WITH a, u, cArgs, cParents, collect(t.value) as tags
-        OPTIONAL MATCH (u)-[uc:CREATED]->(a)
-        OPTIONAL MATCH (u)-[r:VOTED]->(a)
+        WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
         
-        WITH a, u, uc, r, cArgs, cParents, tags, collect({ // maby less is allowed
-                    id:a.id, 
-                    value:a.value,
-                    truth:a.truth,
-                    arg_connection_ids:cArgs,
-                    parent_connection_ids:cParents,
-                    tags:tags,
-                    user_created:uc IS NOT NULL,
-                    user_voted:r.value
-                }) as root_stm
+        OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
         
-
-
+        WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+        OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+        OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+        
+        WITH a, u, uc, r, cArgs, cParents, tags, collect({                          // todo minimate
+            id:a.id, 
+            value:a.value,
+            truth:a.truth,
+            arg_connection_ids:cArgs,
+            parent_connection_ids:cParents,
+            tags:tags,
+            user_created:uc IS NOT NULL,
+            user_voted:r.value
+        }) as root_stm
+        
+        
+        
         // arg_connection
-
-        WITH a, u, root_stm
-        OPTIONAL MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement)
-        OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg)
-        OPTIONAL MATCH (u)-[r2:VOTED]->(cArg)
+        CALL {
+            WITH a, u
+            MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
         
-        WITH a, u, root_stm, collect({
+            OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
+            OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+        
+            RETURN {
             id:cArg.id, 
-            stm_parent_id:a.id,
-            stm_child_id:sArg.id,
-            supports:TYPE(argSup) = "SUPPORTS",
-            user_created:uc2 IS NOT NULL,
-            user_voted:r2.value
-        }) as arg_connections
-
+                stm_parent_id:a.id,
+                stm_child_id:sArg.id,
+                supports:TYPE(argSup) = "SUPPORTS",
+                user_created:uc2 IS NOT NULL,
+                user_voted:r2.value
+            } as connections
         
-        
-        // parent_connection
-
-        WITH a, u, root_stm, arg_connections
-        OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
-        OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-        OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
-        
-        WITH a, u, root_stm, arg_connections ,arg_connections + collect({
-            id:cParent.id, 
-            stm_parent_id:sParent.id,
-            stm_child_id:a.id,
-            supports:TYPE(parentSup) = "SUPPORTS",
-            user_created:uc3 IS NOT NULL,
-            user_voted:r3.value
-        }) as root_connections
-
-        
-        
-        
-        /// ARGS
-
-        OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(:Connection)<-[:HAS]-(sArg:Statement)
-        WITH sArg, a, u, root_connections, root_stm
-
-        // statement
-
-        OPTIONAL MATCH (sArg)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)
-        
-        WITH sArg, u, collect(cArg.id) as cArgs, root_connections, root_stm, a
-        
-        OPTIONAL MATCH (sArg)-[:HAS]->(cParent:Connection)
-        
-        WITH sArg, u, cArgs, collect(cParent.id) as cParents, root_connections, root_stm, a
-        
-        OPTIONAL MATCH (sArg)-[:TAGGED]->(t:Tag)
-        WITH sArg, u, cArgs, cParents, collect(t.value) as tags, root_connections, root_stm, a
-
-        OPTIONAL MATCH (u)-[uc:CREATED]->(sArg)
-        OPTIONAL MATCH (u)-[r:VOTED]->(sArg)
-        
-        WITH sArg, u, uc, r, cArgs, cParents, root_stm, tags,apoc.coll.union(
-            collect({ 
-                    id:sArg.id, 
-                    value:sArg.value,
-                    truth:sArg.truth,
-                    arg_connection_ids:cArgs,
-                    parent_connection_ids:cParents,
-                    tags:tags,
-                    user_created:uc IS NOT NULL,
-                    user_voted:r.value
-                }), root_stm) as ARG_stm, root_connections, a
-
-
-        // arg_connections
-
-        WITH sArg, u, ARG_stm, root_connections, a
-        OPTIONAL MATCH (sArg)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg2:Statement)
-        OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg)
-        OPTIONAL MATCH (u)-[r2:VOTED]->(cArg)
-        
-        WITH sArg, u, ARG_stm,root_connections, apoc.coll.union(collect({
-            id:cArg.id, 
-            stm_parent_id:sArg.id,
-            stm_child_id:sArg2.id,
-            supports:TYPE(argSup) = "SUPPORTS",
-            user_created:uc2 IS NOT NULL,
-            user_voted:r2.value
-        }),root_connections) as arg_connections, a
-
-        
-        
-        // parent_connections
-
-        WITH sArg, u, ARG_stm, arg_connections, a
-        OPTIONAL MATCH (sArg)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
-        OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-        OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
-        
-        WITH sArg, u, ARG_stm,arg_connections, apoc.coll.union(arg_connections, collect({
-            id:cParent.id, 
-            stm_parent_id:sParent.id,
-            stm_child_id:sArg.id,
-            supports:TYPE(parentSup) = "SUPPORTS",
-            user_created:uc3 IS NOT NULL,
-            user_voted:r3.value
-        })) as ARG_connections, a
-
-        
-
-        /// PARENTS
+        UNION // parent_connection
+                
+            WITH a, u
+            MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
             
-
-        WITH a, u, ARG_stm, ARG_connections
-        OPTIONAL MATCH (a)-[:HAS]->(:Connection)-[:HAS]->(sParent:Statement)
-       
-
-        // statement
-
-        OPTIONAL MATCH (sParent)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)
+            OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
+            OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
-        WITH sParent, u, collect(cArg.id) as cArgs, ARG_connections, ARG_stm
+            RETURN {
+                id:cParent.id, 
+                stm_parent_id:sParent.id,
+                stm_child_id:a.id,
+                supports:TYPE(parentSup) = "SUPPORTS",
+                user_created:uc3 IS NOT NULL,
+                user_voted:r3.value
+            } as connections
+        }
         
-        OPTIONAL MATCH (sParent)-[:HAS]->(cParent:Connection)
-        
-        WITH sParent, u, cArgs, collect(cParent.id) as cParents, ARG_connections, ARG_stm
-        
-        OPTIONAL MATCH (sParent)-[:TAGGED]->(t:Tag)
-        WITH sParent, u, cArgs, cParents, collect(t.value) as tags, ARG_connections, ARG_stm
-
-        OPTIONAL MATCH (u)-[uc:CREATED]->(sParent)
-        OPTIONAL MATCH (u)-[r:VOTED]->(sParent)
-        
-        WITH sParent, u, uc, r, cArgs, cParents, tags,apoc.coll.union(
-            collect({ 
-                    id:sParent.id, 
-                    value:sParent.value,
-                    truth:sParent.truth,
-                    arg_connection_ids:cArgs,
-                    parent_connection_ids:cParents,
-                    tags:tags,
-                    user_created:uc IS NOT NULL,
-                    user_voted:r.value
-                }), ARG_stm) as statements, ARG_connections,ARG_stm
-
-
-        // arg_connections
-
-        WITH sParent, u, statements, ARG_connections
-        OPTIONAL MATCH (sParent)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement)
-        OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg)
-        OPTIONAL MATCH (u)-[r2:VOTED]->(cArg)
-        
-        WITH sParent, u, statements, apoc.coll.union(collect({
-            id:cArg.id, 
-            stm_parent_id:sParent.id,
-            stm_child_id:sArg.id,
-            supports:TYPE(argSup) = "SUPPORTS",
-            user_created:uc2 IS NOT NULL,
-            user_voted:r2.value
-        }),ARG_connections) as arg_connections, ARG_connections
-
+        WITH a, u, root_stm, collect(connections) as root_connections
         
         
-        // parent_connections
-
-        WITH sParent, u, statements, arg_connections
-        OPTIONAL MATCH (sParent)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent2:Statement)
-        OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-        OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
-        WITH sParent, u, statements,arg_connections, apoc.coll.union(arg_connections, collect({
-            id:cParent.id, 
-            stm_parent_id:sParent2.id,
-            stm_child_id:sParent.id,
-            supports:TYPE(parentSup) = "SUPPORTS",
-            user_created:uc3 IS NOT NULL,
-            user_voted:r3.value
-        })) as connections
-
+        CALL{
+            
+            // ARG Statements
+            
+            WITH a, u
+            MATCH (a)<-[:SUPPORTS|OPPOSES]-(:Connection)<-[:HAS]-(sArg:Statement)
+            
+            WITH u, sArg as a
+            // Statement to dict
+            OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
         
+            WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
+        
+            OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
+        
+            WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
+        
+            OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
+        
+            WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+            OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+            OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+        
+            WITH a, u, uc, r, cArgs, cParents, tags, {                          // todo minimate
+                id:a.id, 
+                value:a.value,
+                truth:a.truth,
+                arg_connection_ids:cArgs,
+                parent_connection_ids:cParents,
+                tags:tags,
+                user_created:uc IS NOT NULL,
+                user_voted:r.value
+            } as root_stm
+        
+        
+        
+            // arg_connection
+            CALL {
+                WITH a, u
+                MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
+        
+                OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
+                OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+        
+                RETURN {
+                id:cArg.id, 
+                    stm_parent_id:a.id,
+                    stm_child_id:sArg.id,
+                    supports:TYPE(argSup) = "SUPPORTS",
+                    user_created:uc2 IS NOT NULL,
+                    user_voted:r2.value
+                } as connections
+        
+            UNION // parent_connection
+                    
+                WITH a, u
+                MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
+                
+                OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
+                OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
+        
+                RETURN {
+                    id:cParent.id, 
+                    stm_parent_id:sParent.id,
+                    stm_child_id:a.id,
+                    supports:TYPE(parentSup) = "SUPPORTS",
+                    user_created:uc3 IS NOT NULL,
+                    user_voted:r3.value
+                } as connections
+            }
+        
+            RETURN root_stm as arg_statement, collect(connections) as arg_connections
+        
+        }
+        UNWIND arg_connections as arg_con
+        
+        WITH a, u, root_stm, arg_statement,root_connections, collect(arg_con) as arg_connections
+        WITH a, u, root_stm, collect(arg_statement) as arg_statements, apoc.coll.union(root_connections, arg_connections) as connections
+        WITH a, u, root_stm+arg_statements as statements, connections
+        
+        CALL {
+        
+            // PARENT Statements
+        
+            
+            WITH a, u
+            MATCH (a)-[:HAS]->(:Connection)-[:SUPPORTS|OPPOSES]->(sParent:Statement)
+               
+            WITH u, sParent as a
+            // Statement to dict
+            OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
+        
+            WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
+        
+            OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
+        
+            WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
+        
+            OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
+        
+            WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+            OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+            OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+        
+            WITH a, u, uc, r, cArgs, cParents, tags, {                          // todo minimate
+                id:a.id, 
+                value:a.value,
+                truth:a.truth,
+                arg_connection_ids:cArgs,
+                parent_connection_ids:cParents,
+                tags:tags,
+                user_created:uc IS NOT NULL,
+                user_voted:r.value
+            } as root_stm
+        
+        
+        
+            // arg_connection
+            CALL {
+                WITH a, u
+                MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
+        
+                OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
+                OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+        
+                RETURN {
+                id:cArg.id, 
+                    stm_parent_id:a.id,
+                    stm_child_id:sArg.id,
+                    supports:TYPE(argSup) = "SUPPORTS",
+                    user_created:uc2 IS NOT NULL,
+                    user_voted:r2.value
+                } as connections
+        
+            UNION // parent_connection
+                    
+                WITH a, u
+                MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
+                
+                OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
+                OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
+        
+                RETURN {
+                    id:cParent.id, 
+                    stm_parent_id:sParent.id,
+                    stm_child_id:a.id,
+                    supports:TYPE(parentSup) = "SUPPORTS",
+                    user_created:uc3 IS NOT NULL,
+                    user_voted:r3.value
+                } as connections
+            }
+        
+            RETURN root_stm as parent_statement, collect(connections) as parent_connections
+        }
+        UNWIND parent_connections as parent_con
+        WITH a, u, statements, parent_statement, connections, collect(parent_con) as parent_connections
+        WITH a, u, statements, collect(parent_statement) as parent_statements, apoc.coll.union(connections, parent_connections) as connections
+        RETURN  statements+parent_statements as statements, connections
 
-        RETURN collect(statements) as statements, collect(connections) as connections
+
 
       """, id=statement_id)
     success = await r.value()
