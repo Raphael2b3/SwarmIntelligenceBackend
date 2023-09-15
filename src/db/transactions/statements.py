@@ -124,50 +124,48 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
     return Response(message=log)
 
 
-async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
-                                   username):  # TODO work with exclude_ids
-    # TODO make it to custom function jar
+async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
 
     r = await tx.run("""
         MATCH (a:Statement) WHERE a.id = $id     // find root statement
         OPTIONAL MATCH (u:User) WHERE u.username=$username // find optional user
         
         /// ROOT 
+        CALL {
+            WITH a, u
+            WITH a, u WHERE NOT a.id IN $exclude_ids
+            // statement
+            OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
             
-        // statement
-        
-        OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
-        
-        WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
-        
-        OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
-        
-        WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
-        
-        OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
-        
-        WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
-        OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
-        OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
-        
-        WITH a, u, uc, r, cArgs, cParents, tags, collect({                          // todo minimate
-            id:a.id, 
-            value:a.value,
-            truth:a.truth,
-            arg_connection_ids:cArgs,
-            parent_connection_ids:cParents,
-            tags:tags,
-            user_created:uc IS NOT NULL,
-            user_voted:r.value
-        }) as root_stm
-        
-        
+            WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
+            
+            OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
+            
+            WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
+            
+            OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
+            
+            WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+            OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+            OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+            
+            RETURN collect({
+                id:a.id, 
+                value:a.value,
+                truth:a.truth,
+                arg_connection_ids:cArgs,
+                parent_connection_ids:cParents,
+                tags:tags,
+                user_created:uc IS NOT NULL,
+                user_voted:r.value
+            }) as root_stm
+        }
         
         // arg_connection
         CALL {
             WITH a, u
             MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
-        
+            WHERE NOT cArg.id IN $exclude_ids
             OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
             OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
         
@@ -184,6 +182,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
                 
             WITH a, u
             MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
+            WHERE NOT cParent.id IN $exclude_ids
             
             OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
             OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
@@ -200,8 +199,6 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         
         WITH a, u, root_stm, collect(connections) as root_connections
         
-        
-        
         CALL{
             
             // ARG Statements
@@ -210,39 +207,44 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
             MATCH (a)<-[:SUPPORTS|OPPOSES]-(:Connection)<-[:HAS]-(sArg:Statement)
             
             WITH u, sArg as a
-            // Statement to dict
-            OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
-        
-            WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
-        
-            OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
-        
-            WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
-        
-            OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
-        
-            WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
-            OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
-            OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
-        
-            WITH a, u, uc, r, cArgs, cParents, tags, {                          // todo minimate
-                id:a.id, 
-                value:a.value,
-                truth:a.truth,
-                arg_connection_ids:cArgs,
-                parent_connection_ids:cParents,
-                tags:tags,
-                user_created:uc IS NOT NULL,
-                user_voted:r.value
-            } as root_stm
-        
+            
+            CALL {
+                WITH a, u
+                WITH a, u WHERE NOT a.id IN $exclude_ids
+                // Statement to dict
+                OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
+            
+                WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
+            
+                OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
+            
+                WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
+            
+                OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
+            
+                WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+                OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+                OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+            
+                RETURN {                          // todo minimate
+                    id:a.id, 
+                    value:a.value,
+                    truth:a.truth,
+                    arg_connection_ids:cArgs,
+                    parent_connection_ids:cParents,
+                    tags:tags,
+                    user_created:uc IS NOT NULL,
+                    user_voted:r.value
+                } as root_stm
+            }
         
         
             // arg_connection
             CALL {
                 WITH a, u
                 MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
-        
+                WHERE NOT cArg.id IN $exclude_ids
+            
                 OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
                 OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
         
@@ -259,7 +261,8 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
                     
                 WITH a, u
                 MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
-                
+                WHERE NOT cParent.id IN $exclude_ids
+            
                 OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
                 OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
@@ -286,44 +289,47 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         
             // PARENT Statements
         
-            
             WITH a, u
             MATCH (a)-[:HAS]->(:Connection)-[:SUPPORTS|OPPOSES]->(sParent:Statement)
-               
-            WITH u, sParent as a
-            // Statement to dict
-            OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
-        
-            WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
-        
-            OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
-        
-            WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
-        
-            OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
-        
-            WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
-            OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
-            OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
-        
-            WITH a, u, uc, r, cArgs, cParents, tags, {                          // todo minimate
-                id:a.id, 
-                value:a.value,
-                truth:a.truth,
-                arg_connection_ids:cArgs,
-                parent_connection_ids:cParents,
-                tags:tags,
-                user_created:uc IS NOT NULL,
-                user_voted:r.value
-            } as root_stm
-        
+            WITH u, sParent as a 
+            CALL {
+                WITH a, u
+                WITH a, u WHERE NOT a.id IN $exclude_ids
+                
+                // Statement to dict
+                OPTIONAL MATCH (a)<-[:SUPPORTS|OPPOSES]-(cArg:Connection)                   // find optional argument connections
+            
+                WITH a, u, collect(cArg.id) as cArgs                                        // put the found connection ids into a list
+            
+                OPTIONAL MATCH (a)-[:HAS]->(cParent:Connection)                             // find optional parent connections
+            
+                WITH a, u, cArgs, collect(cParent.id) as cParents                           // put the found connection ids into a list
+            
+                OPTIONAL MATCH (a)-[:TAGGED]->(t:Tag)                                       // find tags for statement
+            
+                WITH a, u, cArgs, cParents, collect(t.value) as tags                        // put the tags into a list
+                OPTIONAL MATCH (u)-[uc:CREATED]->(a)                                        // check for statement CREATED by user
+                OPTIONAL MATCH (u)-[r:VOTED]->(a)                                           // check for statement VOTED by user
+            
+                RETURN {                         
+                    id:a.id, 
+                    value:a.value,
+                    truth:a.truth,
+                    arg_connection_ids:cArgs,
+                    parent_connection_ids:cParents,
+                    tags:tags,
+                    user_created:uc IS NOT NULL,
+                    user_voted:r.value
+                } as root_stm
+            }
         
         
             // arg_connection
             CALL {
                 WITH a, u
                 MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
-        
+                WHERE NOT cArg.id IN $exclude_ids
+            
                 OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
                 OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
         
@@ -340,7 +346,8 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
                     
                 WITH a, u
                 MATCH (a)-[:HAS]->(cParent:Connection)-[parentSup:SUPPORTS|OPPOSES]->(sParent:Statement)
-                
+                WHERE NOT cParent.id IN $exclude_ids
+            
                 OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
                 OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
         
@@ -361,9 +368,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         WITH a, u, statements, collect(parent_statement) as parent_statements, apoc.coll.union(connections, parent_connections) as connections
         RETURN  statements+parent_statements as statements, connections
 
-
-
-      """, id=statement_id, username=username)
+      """, id=statement_id, username=username, exclude_ids=exclude_ids)
     try:
         rec: Record | dict = await r.single(strict=True)
         log = "Success"
@@ -374,3 +379,65 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids,
         log = "Error: Getting context failed statement may not exist"
     print(log)
     return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
+
+
+async def statement_calculate_truth_tx(tx):
+
+    # TODO calc truth :=)
+    r = tx.run("""
+                        MATCH (a:Statement)
+                        WHERE NOT (a)<-[:OPPOSES|SUPPORTS]-(:Connection)
+                        WITH a
+                        MATCH (:User)-[votes:VOTED]->(a)
+                        WITH a, sum(votes.value)/count(votes) as truth_voted
+                        RETURN a.id as id, truth_voted as truth
+                        """)
+
+    success = await r.value()
+
+    / ** leafs
+    {
+        id,
+        votes = [-1, 1, 1, 1, -1]
+    }
+    ** /
+
+    // for each leaf calculate the voted truth and save it to the cache
+
+    // get
+    parents
+    from each leaf
+
+    // for each parent, generate connection weight and connection sign(+-)
+    // ->get
+    each
+    connection and get
+    connection
+    votes
+    // ->get
+    parent
+    node
+    id
+
+    // fo
+    generated
+    connection
+    weight
+    into
+    a
+    list
+    attached
+    to
+    parent
+    node
+    with
+
+    // list
+    of
+    nodes = {id: Truth}
+
+    // list
+    of
+    connections = {id: connection}
+
+    pass

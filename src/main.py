@@ -45,3 +45,5 @@ if __name__ == '__main__':
 # TODO Recommendations
 
 # TODO Add CI/CD Pipeline
+
+# TODO make it to custom function jar
