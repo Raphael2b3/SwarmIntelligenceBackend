@@ -381,7 +381,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
     return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
 
 
-async def statement_calculate_truth_tx(tx):
+async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet werden wenn F berechnet wurde!
     generation = {}
 
     # get leaf statements and calculate their base truth : gen 0
