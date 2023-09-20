@@ -3,9 +3,10 @@ import math
 from uuid import uuid4
 
 # ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
-from neo4j import ResultSummary, AsyncResult, Record
+from neo4j import ResultSummary, AsyncResult, Record, Transaction
 
 from db.dbcontroller import IndexesAndConstraints
+from db.truth_calculation import truth_of_node
 from models.responses import Response, Statement, Context
 
 from builtins import print as _print
@@ -381,13 +382,50 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
 
 
 async def statement_calculate_truth_tx(tx):
-    # TODO calc truth :=)
-
-    next_connections = []
-    cached_truth = {}
+    generation = {}
 
     # get leaf statements and calculate their base truth : gen 0
 
-    # get all statements 1 hop away from the leafs and calculate their base truth : gen 1
+    r: AsyncResult = await tx.run("""
+        MATCH (a:Statement) WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection)
+        MATCH (a)<-[v:VOTED]-(:User)
+        RETURN a.id as id, avg(v.value) as truth
+    """)
 
-    # for each connection between gen 0 and gen 1 get the weight and multiply it with the truth of the gen 0
+    async for record in r:
+        generation[record["id"]] = record["truth"]
+    gens = 0
+    while True:
+        await tx.run(""" WITH $map as map
+                         WITH keys(map) as keys, map
+                         UNWIND keys as key
+                         WITH key, map[key] as value
+                         MATCH (a:Statement{id:key})
+                         SET a.truth = value
+        """, map=generation)
+
+        r: AsyncResult = await tx.run("""
+                MATCH (a:Statement) WHERE a.id IN $ids
+                MATCH (a)-[:HAS]-(c:Connection)-[r:SUPPORTS|OPPOSES]->(p:Statement)
+                WITH a, c, p, TYPE(r)="SUPPORTS" as supports
+                MATCH (c)<-[w:VOTED]-(:User)
+                WITH a,p, supports, avg(w.value) as avgWeight
+                MATCH (p)<-[v:VOTED]-(:User)
+                WITH a,p, avg(v.value) as truth,avgWeight,supports
+                RETURN p.id as id, truth, collect(a.id) as origins, collect(avgWeight) as weights, collect(supports) as supports
+            """, ids=list(generation.keys()))
+        if not await r.peek():
+            break
+        next_generation = {}
+        async for record in r:
+            child_truths = []
+            child_weights = []
+            for i in range(len(record["origins"])):
+                child_truths.append(generation[record["origins"][i]])
+                child_weights.append(record["weights"][i] * 1 if record["supports"][i] else -1)
+            next_generation[record["id"]] = truth_of_node(child_truths=child_truths, node_truth_by_vote=record["truth"],
+                                                          child_weights=child_weights)
+        generation = next_generation
+        gens += 1
+        print("Generation", gens)
+    return Response(message="Updated truth of " + str(gens)+ " Generations of Statements")

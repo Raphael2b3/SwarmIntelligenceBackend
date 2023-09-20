@@ -39,6 +39,8 @@ if __name__ == '__main__':
     print("Your Computer IP Address is:" + IPAddr)
     uvicorn.run(app, host=HOST, port=PORT)
 
+# TODO Change label, connections are WEIGHTED, Statements are VOTED
+
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden
 
 # TODO Choose the best fulltext analyzer <= Language Problem

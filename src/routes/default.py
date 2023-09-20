@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Literal
 
 from db.dbcontroller import Database as Db
-from db.transactions import user_report_tx, user_modify_star_tx, statement_get_context_tx
+from db.transactions import user_report_tx, user_modify_star_tx, statement_get_context_tx,statement_calculate_truth_tx
 from models import RequestReportCreate, User, RequestStarSet, RequestContext
 from models.responses import Response, Context
 from security.jwt_auth import Token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, \
@@ -58,4 +58,11 @@ async def report(controller: Literal["statement", "project", "user"],
     async with Db.session() as session:
         r = await session.execute_write(
             user_report_tx, objectid=body.id, _type=controller, reason=body.value)
+    return r
+
+
+@router.get("/updatetruth", response_model=Response)
+async def report():
+    async with Db.session() as session:
+        r = await session.execute_write(statement_calculate_truth_tx)
     return r
