@@ -34,7 +34,7 @@ async def test(title, func, conv=converter):
     assert r
     return r
 
-# TODO run tests thru http for possible fast api thrown errors
+
 @pytest.mark.asyncio
 async def test_app():
     """ Db.URI = TEST_URI
@@ -101,7 +101,7 @@ async def test_app():
                                                                      parent_id=statements[1]["id"],
                                                                      child_id=statements[0]["id"],
                                                                      supports=False)))
-    # TODO Finish tests
+
     # star
     # report
     # await test("delete Connection", lambda: connectionroute.delete(current_user=user,

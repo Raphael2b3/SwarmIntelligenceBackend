@@ -25,7 +25,6 @@ app.include_router(statements.router)
 app.include_router(users.router)
 app.include_router(connections.router)
 
-
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], )
 
 if __name__ == '__main__':
@@ -33,20 +32,27 @@ if __name__ == '__main__':
     # asyncio.run(tests.create_example_db.main())
 
     import socket
+
     hostname = socket.gethostname()
     IPAddr = socket.gethostbyname(hostname)
     print("Your Computer Name is:" + hostname)
     print("Your Computer IP Address is:" + IPAddr)
     uvicorn.run(app, host=HOST, port=PORT)
 
-# TODO Change label, connections are WEIGHTED, Statements are VOTED
-
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden
-
-# TODO Choose the best fulltext analyzer <= Language Problem
 
 # TODO Recommendations
 
-# TODO Add CI/CD Pipeline
+# Performance
+    # Choose the best fulltext analyzer <= Language Problem
+    # make it to custom function jar
+    # performance analysing Cypher tool
 
-# TODO make it to custom function jar
+# Unnecessary
+#   improve CI/CD Pipeline
+#   add filter params für tag und statement suche
+#   filter statements suche by tags
+#   create statements mit tags
+#   finish tests
+#   # TODO run tests through httpClient for possible fast api thrown errors
+

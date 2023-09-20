@@ -16,7 +16,7 @@ def print(*args, **kwargs):
     _print("TX: ", *args, "\n", **kwargs)
 
 
-async def statement_create_tx(tx, *, text, username, tags=()):  # TODO Inlcude Tags
+async def statement_create_tx(tx, *, text, username, tags=()):
     r: AsyncResult = await tx.run("""
         OPTIONAL MATCH (s:Statement{value:$text})
         CALL{
@@ -56,7 +56,7 @@ async def statement_delete_tx(tx, *, statement_id, username):
 
 
 async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0, tags=()):
-    print("statement get", query_string, n_results, skip, tags)  # TODO filter by tags
+    print("statement get", query_string, n_results, skip, tags)
     await tx.run("""
                     CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
                     """)
@@ -167,7 +167,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
             MATCH (a)<-[argSup:SUPPORTS|OPPOSES]-(cArg:Connection)<-[:HAS]-(sArg:Statement) // get argument statements
             WHERE NOT cArg.id IN $exclude_ids
             OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
-            OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+            OPTIONAL MATCH (u)-[r2:WEIGHTED]->(cArg) // check for user voted connection
         
             RETURN {
             id:cArg.id, 
@@ -185,7 +185,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
             WHERE NOT cParent.id IN $exclude_ids
             
             OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-            OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
+            OPTIONAL MATCH (u)-[r3:WEIGHTED]->(cParent)
         
             RETURN {
                 id:cParent.id, 
@@ -246,7 +246,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
                 WHERE NOT cArg.id IN $exclude_ids
             
                 OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
-                OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+                OPTIONAL MATCH (u)-[r2:WEIGHTED]->(cArg) // check for user voted connection
         
                 RETURN {
                 id:cArg.id, 
@@ -264,7 +264,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
                 WHERE NOT cParent.id IN $exclude_ids
             
                 OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-                OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
+                OPTIONAL MATCH (u)-[r3:WEIGHTED]->(cParent)
         
                 RETURN {
                     id:cParent.id, 
@@ -331,7 +331,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
                 WHERE NOT cArg.id IN $exclude_ids
             
                 OPTIONAL MATCH (u)-[uc2:CREATED]->(cArg) // check for user created connection
-                OPTIONAL MATCH (u)-[r2:VOTED]->(cArg) // check for user voted connection
+                OPTIONAL MATCH (u)-[r2:WEIGHTED]->(cArg) // check for user voted connection
         
                 RETURN {
                 id:cArg.id, 
@@ -349,7 +349,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
                 WHERE NOT cParent.id IN $exclude_ids
             
                 OPTIONAL MATCH (u)-[uc3:CREATED]->(cParent)
-                OPTIONAL MATCH (u)-[r3:VOTED]->(cParent)
+                OPTIONAL MATCH (u)-[r3:WEIGHTED]->(cParent)
         
                 RETURN {
                     id:cParent.id, 
@@ -408,7 +408,7 @@ async def statement_calculate_truth_tx(tx):
                 MATCH (a:Statement) WHERE a.id IN $ids
                 MATCH (a)-[:HAS]-(c:Connection)-[r:SUPPORTS|OPPOSES]->(p:Statement)
                 WITH a, c, p, TYPE(r)="SUPPORTS" as supports
-                MATCH (c)<-[w:VOTED]-(:User)
+                MATCH (c)<-[w:WEIGHTED]-(:User)
                 WITH a,p, supports, avg(w.value) as avgWeight
                 MATCH (p)<-[v:VOTED]-(:User)
                 WITH a,p, avg(v.value) as truth,avgWeight,supports

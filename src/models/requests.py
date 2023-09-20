@@ -56,14 +56,12 @@ class RequestStatementSearch(BaseModel):
     tags: list[str] | None = None
     results: int = 10
     skip: int | None = None
-    # TODO add filter params
 
 
 class RequestTagSearch(BaseModel):
     q: str | None = None
     results: int = 10
     skip: int | None = None
-    # TODO add filter params
 
 
 class RequestContext(BaseModel):

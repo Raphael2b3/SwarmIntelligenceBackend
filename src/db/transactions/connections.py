@@ -61,7 +61,7 @@ async def connection_weight_tx(tx, *, connection_id, weight, username):
     r = await tx.run("""
         MATCH (c:Connection{id: $id})
         MATCH (u:User{username:$username})
-        MERGE (u)-[r:VOTED]->(c)
+        MERGE (u)-[r:WEIGHTED]->(c)
         SET r.value = $weight
         RETURN 1
         """, id=connection_id, weight=weight, username=username)
