@@ -25,6 +25,7 @@ app.include_router(statements.router)
 app.include_router(users.router)
 app.include_router(connections.router)
 
+
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], )
 
 if __name__ == '__main__':

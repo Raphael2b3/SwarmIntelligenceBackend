@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends
 
 from db.dbcontroller import Database as Db
 from db.transactions import connection_create_tx, connection_delete_tx, connection_weight_tx
-from models import User, RequestConnectionCreate, RequestConnectionVote, RequestDelete
+from models import User, RequestConnectionCreate, RequestConnectionVote
 from models.responses import Response, Connection
 from security.jwt_auth import get_current_active_user
 
 router = APIRouter(prefix="/connection")
 
 
-@router.post("/create", response_model=Response[Connection])
+@router.post("/", response_model=Response[Connection])
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestConnectionCreate):
     print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
 
@@ -36,13 +36,13 @@ async def weight(
     return r
 
 
-@router.post("/delete",response_model=Response)
+@router.delete("/", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
-        body: RequestDelete):
-    print(f"DELETE CONNECTION \nBy: {current_user}\nBody: {body}")
+        id: str = ""):
+    print(f"DELETE CONNECTION \nBy: {current_user}\nid: {id}")
     async with Db.session() as session:
         r = await session.execute_write(
-            connection_delete_tx, connection_id=body.id,
+            connection_delete_tx, connection_id=id,
             username=current_user.username)
     return r

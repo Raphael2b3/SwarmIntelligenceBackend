@@ -125,7 +125,6 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
 
 
 async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
-
     r = await tx.run("""
         MATCH (a:Statement) WHERE a.id = $id     // find root statement
         OPTIONAL MATCH (u:User) WHERE u.username=$username // find optional user
@@ -382,62 +381,13 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
 
 
 async def statement_calculate_truth_tx(tx):
-
     # TODO calc truth :=)
-    r = tx.run("""
-                        MATCH (a:Statement)
-                        WHERE NOT (a)<-[:OPPOSES|SUPPORTS]-(:Connection)
-                        WITH a
-                        MATCH (:User)-[votes:VOTED]->(a)
-                        WITH a, sum(votes.value)/count(votes) as truth_voted
-                        RETURN a.id as id, truth_voted as truth
-                        """)
 
-    success = await r.value()
+    next_connections = []
+    cached_truth = {}
 
-    / ** leafs
-    {
-        id,
-        votes = [-1, 1, 1, 1, -1]
-    }
-    ** /
+    # get leaf statements and calculate their base truth : gen 0
 
-    // for each leaf calculate the voted truth and save it to the cache
+    # get all statements 1 hop away from the leafs and calculate their base truth : gen 1
 
-    // get
-    parents
-    from each leaf
-
-    // for each parent, generate connection weight and connection sign(+-)
-    // ->get
-    each
-    connection and get
-    connection
-    votes
-    // ->get
-    parent
-    node
-    id
-
-    // fo
-    generated
-    connection
-    weight
-    into
-    a
-    list
-    attached
-    to
-    parent
-    node
-    with
-
-    // list
-    of
-    nodes = {id: Truth}
-
-    // list
-    of
-    connections = {id: connection}
-
-    pass
+    # for each connection between gen 0 and gen 1 get the weight and multiply it with the truth of the gen 0

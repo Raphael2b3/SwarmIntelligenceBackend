@@ -35,15 +35,15 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-async def authenticate_user(userdata):
+async def authenticate_user(username, password):
     async with Db.session() as session:
-        hashed_pw = await session.execute_read(user_get_hashed_password_tx, username=userdata.username)
+        hashed_pw = await session.execute_read(user_get_hashed_password_tx, username=username)
 
     if not hashed_pw:
         return False
-    if not verify_password(userdata.password, hashed_pw):
+    if not verify_password(password, hashed_pw):
         return False
-    return userdata.username
+    return username
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

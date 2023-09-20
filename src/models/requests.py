@@ -22,7 +22,8 @@ class RequestConnectionCreate(BaseModel):
 
 
 class RequestUserPasswordChange(BaseModel):
-    value: str | None = None
+    old: str | None = None
+    new: str | None = None
 
 
 class RequestStatementVote(BaseModel):
@@ -50,10 +51,6 @@ class RequestTagSet(BaseModel):
     tags: list[str] | None = None
 
 
-class RequestDelete(BaseModel):
-    id: str | None = None
-
-
 class RequestStatementSearch(BaseModel):
     q: str | None = None
     tags: list[str] | None = None
@@ -72,4 +69,3 @@ class RequestTagSearch(BaseModel):
 class RequestContext(BaseModel):
     id: str | None = None
     exclude_ids: list[str] | None = None
-

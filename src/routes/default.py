@@ -6,18 +6,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Literal
 
 from db.dbcontroller import Database as Db
-from db.transactions import user_report_tx, user_modify_star_tx
-from models import RequestReportCreate, User, RequestStarSet
-from models.responses import Response
+from db.transactions import user_report_tx, user_modify_star_tx, statement_get_context_tx
+from models import RequestReportCreate, User, RequestStarSet, RequestContext
+from models.responses import Response, Context
 from security.jwt_auth import Token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, \
-    get_current_active_user
+    get_current_active_user, get_optional_user
 
 router = APIRouter()
 
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(credentials: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    credentials = await authenticate_user(credentials)
+    credentials = await authenticate_user(credentials.username, credentials.password)
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -31,8 +31,18 @@ async def login_for_access_token(credentials: Annotated[OAuth2PasswordRequestFor
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("{controller}/star",response_model=Response)
-async def star(controller: Literal["statement", "project", "user",],
+@router.post("/context", response_model=Response[Context])
+async def get_context(current_user: Annotated[User, Depends(get_optional_user)], body: RequestContext):
+    print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
+
+    async with Db.session() as session:
+        r = await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids,
+                                       username=current_user.username)
+    return r
+
+
+@router.post("/{controller}/star", response_model=Response)
+async def star(controller: Literal["statement", "project", "user"],
                current_user: Annotated[User, Depends(get_current_active_user)],
                body: RequestStarSet):
     async with Db.session() as session:
@@ -42,7 +52,7 @@ async def star(controller: Literal["statement", "project", "user",],
     return r
 
 
-@router.post("{controller}/report",response_model=Response)
+@router.post("/{controller}/report", response_model=Response)
 async def report(controller: Literal["statement", "project", "user"],
                  body: RequestReportCreate):
     async with Db.session() as session:

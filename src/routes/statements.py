@@ -5,16 +5,14 @@ from fastapi import APIRouter, Depends
 from db.dbcontroller import Database as Db
 from db.transactions import statement_create_tx, statement_delete_tx, statement_get_many_tx, statement_get_context_tx, \
     statement_vote_tx, statement_modify_tag_tx
-from models import User, Statement, RequestStatementSearch, RequestStatementCreate, Context, \
-    RequestContext, \
-    RequestDelete, RequestTagSet, RequestStatementVote
+from models import User, Statement, RequestStatementSearch, RequestStatementCreate, RequestTagSet, RequestStatementVote
 from models.responses import Response
 from security.jwt_auth import get_current_active_user, get_optional_user
 
 router = APIRouter(prefix="/statement", )
 
 
-@router.post("/", response_model=Response[list[Statement]])
+@router.post("/search", response_model=Response[list[Statement]])
 async def get(current_user: Annotated[User, Depends(get_optional_user)], body: RequestStatementSearch):
     print(f"GET STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
@@ -23,7 +21,7 @@ async def get(current_user: Annotated[User, Depends(get_optional_user)], body: R
     return result
 
 
-@router.post("/create", response_model=Response[Statement])
+@router.post("/", response_model=Response[Statement])
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
     print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
@@ -32,23 +30,13 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
     return r
 
 
-@router.post("/context", response_model=Response[Context])
-async def get_context(current_user: Annotated[User, Depends(get_optional_user)], body: RequestContext):
-    print(f"GET CONTEXT STATEMENT \nBy: {current_user}\nBody: {body}")
-
-    async with Db.session() as session:
-        r = await session.execute_read(statement_get_context_tx, statement_id=body.id, exclude_ids=body.exclude_ids,
-                                       username=current_user.username)
-    return r
-
-
-@router.post("/delete", response_model=Response)
+@router.delete("/", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
-        body: RequestDelete):
+        id:str):
     print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
     async with Db.session() as session:
-        r = await session.execute_write(statement_delete_tx, statement_id=body.id,
+        r = await session.execute_write(statement_delete_tx, statement_id=id,
                                         username=current_user.username)
     return r
 
