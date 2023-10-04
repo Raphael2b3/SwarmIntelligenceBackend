@@ -34,7 +34,15 @@ async def test(title, func, conv=converter):
     assert r
     return r
 
-
+async def txs(tx):
+    await tx.run("""match(a) return a""")
+    r = await tx.run("""WITH a return a""")
+    print(await r.values())
+async def test_sesion():
+    await Db.init()
+    async with Db.session() as session:
+        session.execute_read(txs)
+    pass
 @pytest.mark.asyncio
 async def test_app():
     """ Db.URI = TEST_URI

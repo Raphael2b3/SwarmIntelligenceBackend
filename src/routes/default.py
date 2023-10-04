@@ -66,3 +66,7 @@ async def report():
     async with Db.session() as session:
         r = await session.execute_write(statement_calculate_truth_tx)
     return r
+
+@router.get("/")
+async def report():
+    return "Hallo temesgen stinkt"

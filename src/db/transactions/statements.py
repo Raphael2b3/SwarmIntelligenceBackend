@@ -386,16 +386,44 @@ async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet we
 
     # get leaf statements and calculate their base truth : gen 0
 
+
+    #TODO how its done:
+    """
+        1 generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}
+        2 generate dict of scheme parent_id:number_of_known_weights -> return nodes wich id and input grade is equal to
+            parent_id and number_of_knwon_weights:
+        
+        3. generate truth for node, delete connections used for the truth generation
+        
+        4. save truth to db and return connections of schema {weight, parent_id, weighted_truth}
+        
+        5. if there are connections returned start from 2.
+        
+    
+         
+    
+    """
     r: AsyncResult = await tx.run("""
         MATCH (a:Statement) WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection)
         MATCH (a)<-[v:VOTED]-(:User)
+        
+        MATCH (a)-[:HAS]-(c:Connection)-[r:SUPPORTS|OPPOSES]->(p:Statement)
+        WITH a, c, p, TYPE(r)="SUPPORTS" as supports
+        MATCH (c)<-[w:WEIGHTED]-(:User)
+        WITH a,p, supports, avg(w.value) as avgWeight
+        MATCH (p)<-[v:VOTED]-(:User)
+        WITH a,p, avg(v.value) as truth,avgWeight,supports
+        RETURN p.id as id, truth, collect(a.id) as origins, collect(avgWeight) as weights, collect(supports) as supports
+        
+        
         RETURN a.id as id, avg(v.value) as truth
     """)
-
+    # save truth
     async for record in r:
         generation[record["id"]] = record["truth"]
     gens = 0
     while True:
+        # insert known truth in db
         await tx.run(""" WITH $map as map
                          WITH keys(map) as keys, map
                          UNWIND keys as key
@@ -414,6 +442,7 @@ async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet we
                 WITH a,p, avg(v.value) as truth,avgWeight,supports
                 RETURN p.id as id, truth, collect(a.id) as origins, collect(avgWeight) as weights, collect(supports) as supports
             """, ids=list(generation.keys()))
+
         if not await r.peek():
             break
         next_generation = {}
