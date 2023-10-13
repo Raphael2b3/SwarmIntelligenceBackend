@@ -386,8 +386,7 @@ async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet we
 
     # get leaf statements and calculate their base truth : gen 0
 
-
-    #TODO how its done:
+    # TODO how its done:
     """
         1 generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}
         2 generate dict of scheme parent_id:number_of_known_weights -> return nodes wich id and input grade is equal to
@@ -399,62 +398,39 @@ async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet we
         
         5. if there are connections returned start from 2.
         
-    
-         
-    
     """
+
     r: AsyncResult = await tx.run("""
-        MATCH (a:Statement) WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection)
+    
+    // generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}
+    
+    MATCH (a:Statement) 
+    WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection)
+    
+    WITH a
+    
+    CALL {
+    
+        // generate truth and set it
+        WITH a
         MATCH (a)<-[v:VOTED]-(:User)
+        WITH avg(v.value) as truth
+        SET a.truth = truth
         
-        MATCH (a)-[:HAS]-(c:Connection)-[r:SUPPORTS|OPPOSES]->(p:Statement)
-        WITH a, c, p, TYPE(r)="SUPPORTS" as supports
-        MATCH (c)<-[w:WEIGHTED]-(:User)
-        WITH a,p, supports, avg(w.value) as avgWeight
-        MATCH (p)<-[v:VOTED]-(:User)
-        WITH a,p, avg(v.value) as truth,avgWeight,supports
-        RETURN p.id as id, truth, collect(a.id) as origins, collect(avgWeight) as weights, collect(supports) as supports
+        // generate connections
+        WITH a, truth
+        MATCH (a)-[:HAS]->(c:Connection)-[r:OPPOSES|SUPPORTS]->(:Statement)
+        
+        MATCH (c)<-[v:VOTED]-(:User)
+        WITH avg(v.value) as weight, a
+        
+        WITH weight
         
         
-        RETURN a.id as id, avg(v.value) as truth
+            
+        
+        
+    }
+    
+    
     """)
-    # save truth
-    async for record in r:
-        generation[record["id"]] = record["truth"]
-    gens = 0
-    while True:
-        # insert known truth in db
-        await tx.run(""" WITH $map as map
-                         WITH keys(map) as keys, map
-                         UNWIND keys as key
-                         WITH key, map[key] as value
-                         MATCH (a:Statement{id:key})
-                         SET a.truth = value
-        """, map=generation)
-
-        r: AsyncResult = await tx.run("""
-                MATCH (a:Statement) WHERE a.id IN $ids
-                MATCH (a)-[:HAS]-(c:Connection)-[r:SUPPORTS|OPPOSES]->(p:Statement)
-                WITH a, c, p, TYPE(r)="SUPPORTS" as supports
-                MATCH (c)<-[w:WEIGHTED]-(:User)
-                WITH a,p, supports, avg(w.value) as avgWeight
-                MATCH (p)<-[v:VOTED]-(:User)
-                WITH a,p, avg(v.value) as truth,avgWeight,supports
-                RETURN p.id as id, truth, collect(a.id) as origins, collect(avgWeight) as weights, collect(supports) as supports
-            """, ids=list(generation.keys()))
-
-        if not await r.peek():
-            break
-        next_generation = {}
-        async for record in r:
-            child_truths = []
-            child_weights = []
-            for i in range(len(record["origins"])):
-                child_truths.append(generation[record["origins"][i]])
-                child_weights.append(record["weights"][i] * 1 if record["supports"][i] else -1)
-            next_generation[record["id"]] = truth_of_node(child_truths=child_truths, node_truth_by_vote=record["truth"],
-                                                          child_weights=child_weights)
-        generation = next_generation
-        gens += 1
-        print("Generation", gens)
-    return Response(message="Updated truth of " + str(gens)+ " Generations of Statements")
