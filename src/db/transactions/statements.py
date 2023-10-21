@@ -379,7 +379,7 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
     return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
 
 
-async def statement_calculate_truth_tx(tx):  # TODO BUG: E darf erst berechnet werden wenn F berechnet wurde!
+async def statement_calculate_truth_tx(tx):
 
     """
         1 generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}

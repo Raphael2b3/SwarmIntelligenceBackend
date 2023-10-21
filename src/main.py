@@ -45,5 +45,5 @@ if __name__ == '__main__':
 #   filter statements suche by tags
 #   create statements mit tags
 #   finish tests
-#   # TODO run tests through httpClient for possible fast api thrown errors
+#   run tests through httpClient for possible fast api thrown errors
 #   container env security setup
