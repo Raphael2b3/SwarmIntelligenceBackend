@@ -1,13 +1,21 @@
-from typing import Annotated
+from starlette.testclient import TestClient
 
-from fastapi import APIRouter, Depends
+from main import app
 
-from db.dbcontroller import Database as Db
-from db.transactions import connection_create_tx, connection_delete_tx, connection_weight_tx
-from models import User, RequestConnectionCreate, RequestConnectionVote
-from models.responses import Response, Connection
-from security.jwt_auth import get_current_active_user
+client = TestClient(app=app,root_path="/connection")
 
+
+async def test_create():
+    pass
+
+async def test_weight():
+    pass
+
+async def test_delete():
+    pass
+
+
+"""
 router = APIRouter(prefix="/connection")
 
 @router.post("/", response_model=Response[Connection])
@@ -45,3 +53,5 @@ async def delete(
             connection_delete_tx, connection_id=id,
             username=current_user.username)
     return r
+
+"""

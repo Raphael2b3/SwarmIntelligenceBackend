@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from neo4j import AsyncGraphDatabase, AsyncDriver
+from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
 
 from env import DB_CONNECTION_STRING, DB_PASSWORD, DB_USERNAME
 
@@ -85,7 +85,7 @@ class Database:
 
     @classmethod
     @asynccontextmanager
-    async def session(cls):
+    async def session(cls) -> AsyncSession:
         session = cls.driver.session(database=cls.DATABASE)
         try:
             yield session

@@ -1,15 +1,13 @@
-import math
-
+# ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
+from builtins import print as _print
 from uuid import uuid4
 
 # ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
-from neo4j import ResultSummary, AsyncResult, Record, Transaction
+from neo4j import AsyncResult, Record
 
 from db.dbcontroller import IndexesAndConstraints
 from db.truth_calculation import truth_of_node
 from models.responses import Response, Statement, Context
-
-from builtins import print as _print
 
 
 def print(*args, **kwargs):
@@ -381,17 +379,12 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
     return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
 
 
-async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet werden wenn F berechnet wurde!
-    generation = {}
+async def statement_calculate_truth_tx(tx):  # TODO BUG: E darf erst berechnet werden wenn F berechnet wurde!
 
-    # get leaf statements and calculate their base truth : gen 0
-
-    # TODO how its done:
     """
         1 generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}
-        2 generate dict of scheme parent_id:number_of_known_weights -> return nodes wich id and input grade is equal to
-            parent_id and number_of_knwon_weights:
-        
+        2 generate dict of scheme parent_id:number_of_known_weights -> return nodes which id and input grade is equal to
+            parent_id and number_of_known_weights:
         3. generate truth for node, delete connections used for the truth generation
         
         4. save truth to db and return connections of schema {weight, parent_id, weighted_truth}
@@ -401,36 +394,108 @@ async def statement_calculate_truth_tx(tx): # TODO BUG: E darf erst berechnet we
     """
 
     r: AsyncResult = await tx.run("""
-    
     // generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}
     
     MATCH (a:Statement) 
-    WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection)
+    WHERE NOT (a)<-[:SUPPORTS|OPPOSES]-(:Connection) // Definition of Root notes
     
-    WITH a
+    // generate truth and set it
+    MATCH (a)<-[v:VOTED]-(:User)
     
-    CALL {
+    WITH avg(v.value) as truth, a
+    SET a.truth = truth
     
-        // generate truth and set it
-        WITH a
-        MATCH (a)<-[v:VOTED]-(:User)
-        WITH avg(v.value) as truth
-        SET a.truth = truth
+    // generate connections
+    WITH a, truth
+    MATCH (a)-[:HAS]->(c:Connection)-[r:OPPOSES|SUPPORTS]->(b:Statement)
+    WITH truth, c, b.id as parent_id, CASE 
+        WHEN TYPE(r) = "OPOSSES" THEN -1 
+        ELSE 1 END 
+        as sign
         
-        // generate connections
-        WITH a, truth
-        MATCH (a)-[:HAS]->(c:Connection)-[r:OPPOSES|SUPPORTS]->(:Statement)
-        
-        MATCH (c)<-[v:VOTED]-(:User)
-        WITH avg(v.value) as weight, a
-        
-        WITH weight
-        
-        
-            
-        
-        
-    }
+    MATCH (c)<-[v:VOTED]-(:User)
+
+    WITH avg(v.value) as uweight, truth, parent_id, sign
     
+    WITH uweight*sign as weight, uweight * truth * sign as weighted_truth, parent_id
     
+    RETURN collect({parent_id:parent_id,weight:weight, weighted_truth:weighted_truth}) as connections
     """)
+
+    data = (await r.single())["connections"]
+    connections = {}
+    iterations = 1
+    while len(data):
+        print(data)
+        for con in data:
+            if not con["parent_id"] in connections:
+                connections[con["parent_id"]] = []
+            connections[con["parent_id"]].append({i: con[i] for i in con if i != "parent_id"})
+
+        grades = {con: len(connections[con]) for con in connections}
+        ids = [key for key in connections]
+        print("Grades", grades)
+        print("Data", connections)
+
+        # Method 1 match statements where the id is in the list,
+
+        r: AsyncResult = await tx.run("""
+            // return node ids which id and input grade is equal to parent_id and number_of_known_weights
+                
+            WITH $ids as ids, $grades as grades // ids is list of ids, grades is dictionary parent_id:known_grade
+            
+            // match statements
+            MATCH (a:Statement)
+            WHERE a.id IN ids
+            
+            // get grade and filter ids
+            MATCH (a)<-[r:SUPPORTS|OPPOSES]-(:Connection)
+            WITH a, count(r) as grade, grades
+            WITH a
+            WHERE grades[a.id] = grade
+            
+            // generate voted truth
+            MATCH (a)<-[v:VOTED]-(:User)
+            WITH avg(v.value) as truth, a
+            
+            RETURN collect([a.id, truth]) as truths
+            """, ids=ids, grades=grades)
+        data = await r.single()
+        truths = data["truths"]
+        weighted_truth = {}
+        for truth in truths:
+            id = truth[0]
+            weighted_truth[id] = truth_of_node(connections.pop(id), truth[1])
+
+        r: AsyncResult = await tx.run("""
+                    
+                    // generate truth for node, delete connections used for the truth generation
+
+                    WITH $truths as truth
+
+                    UNWIND keys(truth) as id
+                    MATCH (a:Statement)
+                    WHERE a.id = id
+                    SET a.truth = truth[id]
+
+                    // generate connections
+                    WITH a, truth[id] as truth
+                    MATCH (a)-[:HAS]->(c:Connection)-[r:OPPOSES|SUPPORTS]->(b:Statement)
+                    WITH truth, c, r, b.id as parent_id, CASE 
+                        WHEN TYPE(r) = "OPOSSES" THEN -1 
+                        ELSE 1 END 
+                        as sign
+                    WITH c, sign, truth, parent_id
+                    MATCH (c)<-[v:VOTED]-(:User)
+
+                    WITH avg(v.value) as uweight, truth, parent_id, sign
+
+                    WITH uweight*sign as weight, uweight * truth * sign as weighted_truth, parent_id
+
+                    RETURN collect({parent_id:parent_id,weight:weight, weighted_truth:weighted_truth}) as connections
+
+
+                    """, truths=weighted_truth)
+        data = (await r.single())["connections"]
+        iterations += 1
+    return Response(message=f"Success. Needed { iterations } Iterations")

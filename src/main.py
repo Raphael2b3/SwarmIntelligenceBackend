@@ -28,15 +28,6 @@ app.include_router(connections.router)
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], )
 
 if __name__ == '__main__':
-    # import tests.create_example_db, asyncio
-    # asyncio.run(tests.create_example_db.main())
-
-    import socket
-
-    hostname = socket.gethostname()
-    IPAddr = socket.gethostbyname(hostname)
-    print("Your Computer Name is:" + hostname)
-    print("Your Computer IP Address is:" + IPAddr)
     uvicorn.run(app, host=HOST, port=PORT)
 
 # TODO beim mergen von zwei Statements müssen Kreise behandelt werden

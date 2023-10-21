@@ -63,3 +63,4 @@ async def vote(
                                         username=current_user.username,
                                         statement_id=body.id, vote=body.value)
     return r
+
