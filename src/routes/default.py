@@ -69,4 +69,4 @@ async def report():
 
 @router.get("/")
 async def report():
-    return "Hallo temesgen stinkt"
+    return "Hallo was geht Lukas"

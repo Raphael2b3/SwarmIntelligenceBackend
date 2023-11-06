@@ -39,3 +39,8 @@ class Tag(BaseModel):
 class Context(BaseModel):
     statements: list[Statement] | None = None
     connections: list[Connection] | None = None
+
+
+class Equation(BaseModel):
+    id: str | None = None
+    value: list[str] | None = None
