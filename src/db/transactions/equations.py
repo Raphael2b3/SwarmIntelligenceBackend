@@ -1,19 +1,9 @@
-from uuid import uuid4
-
-from neo4j import ResultSummary, AsyncResult
-
+from db.core import transaction
 from models.responses import Response
 
-from builtins import print as _print
 
-
-def print(*args, **kwargs):
-    _print("TX: ", *args, "\n", **kwargs)
-
-
-async def equation_get_many_tx(tx, *, query, limit=10, skip=0):
-    print("equation get", query, "limit", limit, "skip", skip)
-
+@transaction
+async def equation_get_many(tx, *, query, limit=10, skip=0):
     result = await tx.run("""
                     
                     CALL {

@@ -1,10 +1,10 @@
 import asyncio
 
 from src import env
-from db.dbcontroller import Database as Db
-import src.routes.users as userroute
-import src.routes.statements as statementroute
-import src.routes.connections as connectionroute
+from db.core import Database as Db
+import api.routes.users as userroute
+import api.routes.statements as statementroute
+import api.routes.connections as connectionroute
 
 # watch("neo4j", out=sys.stdout)
 

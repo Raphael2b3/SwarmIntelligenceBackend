@@ -1,20 +1,12 @@
-# ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
-from builtins import print as _print
 from uuid import uuid4
-
-# ? Maby get user from db call bookmark before, because there will always be a validation for the  user before this call
+from db.core import transaction
 from neo4j import AsyncResult, Record
 
-from db.dbcontroller import IndexesAndConstraints
-from db.truth_calculation import truth_of_node
 from models.responses import Response, Statement, Context
 
 
-def print(*args, **kwargs):
-    _print("TX: ", *args, "\n", **kwargs)
-
-
-async def statement_create_tx(tx, *, text, username, tags=()):
+@transaction
+async def statement_create(tx, *, text, username, tags=()):
     r: AsyncResult = await tx.run("""
         OPTIONAL MATCH (s:Statement{value:$text})
         CALL{
@@ -40,7 +32,8 @@ async def statement_create_tx(tx, *, text, username, tags=()):
     return Response(message=log, value=Statement(**dict(success), value=text))
 
 
-async def statement_delete_tx(tx, *, statement_id, username):
+@transaction
+async def statement_delete(tx, *, statement_id, username):
     r = await tx.run("""
             MATCH (p:Statement{id:$id})<-[:CREATED]-(:User{username:$username})
             WITH p
@@ -53,7 +46,8 @@ async def statement_delete_tx(tx, *, statement_id, username):
     return Response(message=log)
 
 
-async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0, tags=()):
+@transaction
+async def statement_get_many(tx, *, query_string, n_results=10, skip=0, tags=()):
     print("statement get", query_string, n_results, skip, tags)
     await tx.run("""
                     CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
@@ -78,7 +72,8 @@ async def statement_get_many_tx(tx, *, query_string, n_results=10, skip=0, tags=
     return Response(message=log, value=[dict(record) for record in await result.fetch(n_results)])
 
 
-async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
+@transaction
+async def statement_modify_tag(tx, *, username, statement_id, tags):
     print("Modify tag", username, statement_id, tags)
     r = await tx.run("""
             MATCH (:User{username:$username})-[:CREATED]->(s:Statement{id:$id})
@@ -109,7 +104,8 @@ async def statement_modify_tag_tx(tx, *, username, statement_id, tags):
     return Response(message=log)
 
 
-async def statement_vote_tx(tx, *, username, statement_id, vote):
+@transaction
+async def statement_vote(tx, *, username, statement_id, vote):
     r = await tx.run("""
             MATCH (u:User{username:$username})
             MATCH (s:Statement{id:$id})
@@ -123,7 +119,8 @@ async def statement_vote_tx(tx, *, username, statement_id, vote):
     return Response(message=log)
 
 
-async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
+@transaction
+async def statement_get_context(tx, *, statement_id, exclude_ids, username):
     r = await tx.run("""
         MATCH (a:Statement) WHERE a.id = $id     // find root statement
         OPTIONAL MATCH (u:User) WHERE u.username=$username // find optional user
@@ -379,7 +376,8 @@ async def statement_get_context_tx(tx, *, statement_id, exclude_ids, username):
     return Response(message=log, value=Context(connections=rec["connections"], statements=rec["statements"]))
 
 
-async def statement_calculate_truth_tx(tx):
+@transaction
+async def statement_calculate_truth(tx):
 
     """
         1 generate root nodes truth and generate and return connections of schema {weight, parent_id, weighted_truth}

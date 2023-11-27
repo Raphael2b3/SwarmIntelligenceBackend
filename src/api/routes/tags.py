@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db.dbcontroller import Database as Db
+from db.core import Database as Db
 from db.transactions import tag_get_many_tx, tag_create_tx, tag_delete_tx
 from models import User, RequestTagCreate, Tag
 from models.responses import Response

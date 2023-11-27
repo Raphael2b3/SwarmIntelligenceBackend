@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Literal
 
-from db.dbcontroller import Database as Db
+from db.core import Database as Db
 from db.transactions import user_report_tx, user_modify_star_tx, statement_get_context_tx,statement_calculate_truth_tx
 from models import RequestReportCreate, User, RequestStarSet, RequestContext
 from models.responses import Response, Context

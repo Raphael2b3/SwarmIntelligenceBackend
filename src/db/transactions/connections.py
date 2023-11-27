@@ -1,17 +1,13 @@
 from uuid import uuid4
 
-from neo4j import ResultSummary, AsyncResult
+from neo4j import AsyncResult
 
 from models.responses import Response
-
-from builtins import print as _print
-
-
-def print(*args, **kwargs):
-    _print("TX: ", *args, "\n", **kwargs)
+from db.core import transaction
 
 
-async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
+@transaction
+async def connection_create(tx, *, stop_id, start_id, is_support, username):
     support_str = "SUPPORTS" if is_support else "OPPOSES"
     query = f"""
     MATCH (a:Statement{{id:$start_id}}) 
@@ -38,12 +34,14 @@ async def connection_create_tx(tx, *, stop_id, start_id, is_support, username):
     """
     r: AsyncResult = await tx.run(query, start_id=start_id, stop_id=stop_id, new_id=str(uuid4()), username=username)
     success = await r.single()
-    log = "connection created successfully" if success and success["created"] else "Error: statement may not exist, connection already exists or argument cicle"
+    log = "connection created successfully" if success and success[
+        "created"] else "Error: statement may not exist, connection already exists or argument cicle"
     print(log)
     return Response[str](message=log, value=success["id"] if success else None)
 
 
-async def connection_delete_tx(tx, *, connection_id, username):
+@transaction
+async def connection_delete(tx, *, connection_id, username):
     r = await tx.run("""
             MATCH (c:Connection{id:$id})
             MATCH (u:User{username:$username})
@@ -57,7 +55,8 @@ async def connection_delete_tx(tx, *, connection_id, username):
     return Response(message=log)
 
 
-async def connection_weight_tx(tx, *, connection_id, weight, username):
+@transaction
+async def connection_weight(tx, *, connection_id, weight, username):
     r = await tx.run("""
         MATCH (c:Connection{id: $id})
         MATCH (u:User{username:$username})

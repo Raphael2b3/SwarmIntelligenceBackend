@@ -1,19 +1,12 @@
-from multiprocessing.pool import AsyncResult
-
-from neo4j import ResultSummary
+from db.core import transaction
 
 from models import User
-
-from builtins import print as _print
 
 from models.responses import Response
 
 
-def print(*args, **kwargs):
-    _print("TX: ", *args, "\n", **kwargs)
-
-
-async def user_create_tx(tx, *, username, hashed_password):
+@transaction
+async def user_create(tx, *, username, hashed_password):
     r = await tx.run(""" 
             MATCH (c:User{username:$username})
             RETURN 1
@@ -34,7 +27,8 @@ async def user_create_tx(tx, *, username, hashed_password):
     return Response(message=log)
 
 
-async def user_delete_tx(tx, username):
+@transaction
+async def user_delete(tx, username):
     r = await tx.run("""
         MATCH (c:User{username:$username})
         DETACH DELETE c
@@ -46,8 +40,9 @@ async def user_delete_tx(tx, username):
     return Response(message=log)
 
 
-async def user_get_hashed_password_tx(tx, username):
-    result: AsyncResult = await tx.run("""
+@transaction
+async def user_get_hashed_password(tx, username):
+    result = await tx.run("""
         MATCH (c:User{username:$username})
         RETURN c.hashed_password as pw
     """, username=username)
@@ -55,7 +50,8 @@ async def user_get_hashed_password_tx(tx, username):
     return record["pw"]
 
 
-async def user_modify_star_tx(tx, *, username, object_id, _type="Tag|Statement|User", removestar=False):
+@transaction
+async def user_modify_star(tx, *, username, object_id, _type="Tag|Statement|User", removestar=False):
     _type = _type.capitalize()
     if _type not in ["Tag", "Statement", "User", "Tag|Statement|User"]:
         raise Exception("Invalid Object of Label value " + _type)
@@ -74,7 +70,8 @@ async def user_modify_star_tx(tx, *, username, object_id, _type="Tag|Statement|U
     return Response(message=log)
 
 
-async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User", ):
+@transaction
+async def user_report(tx, *, object_id, reason="", _type="Tag|Statement|User", ):
     _type = _type.capitalize()
     if _type not in ["Tag", "Statement", "User", "Tag|Statement|User"]:
         raise Exception("Invalid Label value " + _type)
@@ -91,7 +88,8 @@ async def user_report_tx(tx, *, object_id, reason="", _type="Tag|Statement|User"
     return Response(message=log)
 
 
-async def user_get_tx(tx, *, username):
+@transaction
+async def user_get(tx, *, username):
     result = await tx.run("""
             MATCH (c:User{username:$username})
             RETURN c.disabled as disabled, c.username as username
@@ -104,7 +102,8 @@ async def user_get_tx(tx, *, username):
         return None
 
 
-async def user_change_password_tx(tx, *, username, password):
+@transaction
+async def user_change_password(tx, *, username, password):
     result = await tx.run("""
             MATCH (c:User{username:$username})
             SET c.hashed_password = $hashed_pw

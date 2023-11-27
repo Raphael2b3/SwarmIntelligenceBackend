@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db.dbcontroller import Database as Db
+from db.core import Database as Db
 from db.transactions import statement_create_tx, statement_delete_tx, statement_get_many_tx, statement_get_context_tx, \
     statement_vote_tx, statement_modify_tag_tx
 from models import User, Statement, RequestStatementSearch, RequestStatementCreate, RequestTagSet, RequestStatementVote

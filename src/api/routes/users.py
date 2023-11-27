@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db.dbcontroller import Database as Db
+from db.core import Database as Db
 from db.transactions import user_create_tx, user_delete_tx, user_change_password_tx
 from models import User, RequestUserCreate, RequestUserPasswordChange
 from models.responses import Response

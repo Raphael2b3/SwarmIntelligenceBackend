@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db.dbcontroller import Database as Db
+from db.core import Database as Db
 from db.transactions import connection_create_tx, connection_delete_tx, connection_weight_tx
 from models import User, RequestConnectionCreate, RequestConnectionVote
 from models.responses import Response, Connection
@@ -10,10 +10,9 @@ from security.jwt_auth import get_current_active_user
 
 router = APIRouter(prefix="/connection")
 
-@router.post("/", response_model=Response[Connection])
-async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestConnectionCreate):
-    print(f"CREATE CONNECTION \nBy: {current_user}\nBody: {body}")
 
+@router.post(path="", response_model=Response[Connection])
+async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestConnectionCreate):
     async with Db.session() as session:
         r = await session.execute_write(connection_create_tx, start_id=body.child_id,
                                         stop_id=body.parent_id,

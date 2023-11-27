@@ -1,9 +1,6 @@
 report_damper = 5  # je höher der wert um so mehr Menschen müssen diese connection reporten damit das zugrunde
 
 
-# liegende Statement einfluss verliert
-
-
 def R(n):
     return 0.5 if n > 0 else 0
 

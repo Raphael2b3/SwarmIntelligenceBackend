@@ -1,13 +1,6 @@
 import pytest
-from starlette.testclient import TestClient
 
-from db.dbcontroller import Database as Db
-import routes.users as userroute
-import routes.default as defaultroute
-import routes.tags as tagroute
-import routes.statements as statementroute
-import routes.connections as connectionroute
-import security.jwt_auth as auth
+from db.core import Database as Db
 
 #watch("neo4j", out=sys.stdout)
 
