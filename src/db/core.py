@@ -22,7 +22,10 @@ async def session() -> AsyncSession:
         await _session.close()
 
 
-async def transaction(func):
+def transaction(func):
+    if not initialized:
+        raise Exception("db is not initialized, call db.init(...)")
+
     async def wrapper(**kwargs):
         async with session() as se:
             return se.execute_write(func, **kwargs)

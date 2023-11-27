@@ -5,20 +5,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-from pydantic import BaseModel
-
+import db
 from env import __SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from models import User
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
+from security.models import TokenData
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -34,9 +24,7 @@ def get_password_hash(password):
 
 
 async def authenticate_user(username, password):
-    async with Db.session() as session:
-        hashed_pw = await session.execute_read(user_get_hashed_password_tx, username=username)
-
+    hashed_pw = await db.user_get_hashed_password(username=username)
     if not hashed_pw:
         return False
     if not verify_password(password, hashed_pw):
@@ -78,8 +66,8 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     except JWTError as e:
         raise credentials_exception
 
-    async with Db.session() as session:
-        db_user: User = await session.execute_read(user_get_tx, username=token_data.username)
+    db_user: User = await db.user_get(username=token_data.username)
+
     if db_user is None:
         raise credentials_exception
     return db_user
