@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db import equation_get_many
+from controller import equation_get_many
 from security import get_current_active_user, get_optional_user
 from api.models import *
 router = APIRouter(prefix="/equation")

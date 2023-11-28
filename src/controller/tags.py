@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from db.core import transaction
+from controller.core import transaction
 
 
 @transaction
@@ -35,11 +35,11 @@ async def tag_delete(tx, *, tag, username):
 async def tag_get_many(tx, query_string, n_results=10, skip=0):
     print("tag get", query_string, n_results, skip)
     await tx.run("""
-                CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
+                CALL controller.index.fulltext.awaitEventuallyConsistentIndexRefresh()
                 """)
     result = await tx.run("""
             CALL{
-                    CALL db.index.fulltext.queryNodes($index, $query_string,{
+                    CALL controller.index.fulltext.queryNodes($index, $query_string,{
                         skip:$skip,
                         limit:$limit
                     }) YIELD node, score

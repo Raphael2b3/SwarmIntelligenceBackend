@@ -1,6 +1,6 @@
 from uuid import uuid4
 from neo4j import AsyncResult
-from db.core import transaction
+from controller.core import transaction
 
 
 @transaction

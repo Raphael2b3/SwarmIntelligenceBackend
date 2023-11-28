@@ -3,10 +3,11 @@ import asyncio
 import dotenv
 
 import load_env
-import db
+import controller
 import api.routes.users as userroute
 import api.routes.statements as statementroute
 import api.routes.connections as connectionroute
+import security
 
 # watch("neo4j", out=sys.stdout)
 
@@ -22,7 +23,7 @@ async def create_all_statements():
     statement_ids = {}
     for a in "ABCDEFG":
         response = await statementroute.create(current_user=users[0],
-                                         body=statementroute.RequestStatementCreate(value=a, tags=[a.lower()]))
+                                               body=statementroute.RequestStatementCreate(value=a, tags=[a.lower()]))
         statement_ids[a] = response["value"]["id"]
     return statement_ids
 
@@ -90,7 +91,8 @@ async def vote_all_connections(connection_ids):
 
 
 async def _start():
-    db.init()
+    controller.init()
+    security.init()
 
     await create_all_user_user()
     stm_ids = await create_all_statements()
@@ -98,16 +100,10 @@ async def _start():
     ctn_ids = await create_all_connections(stm_ids)
     await vote_all_connections(ctn_ids)
 
-    try:
-        pass
-    except Exception as e:
-        print(e)
-    finally:
-        await db.close()
+    await controller.close()
 
 
-def run(path_to_env):
-    dotenv.load_dotenv(path_to_env)
+def run():
     asyncio.run(_start())
 
 

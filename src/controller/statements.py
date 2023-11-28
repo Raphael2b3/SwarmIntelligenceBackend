@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from db.core import transaction, Index
+from controller.core import transaction, Index
 from neo4j import AsyncResult, Record
 
 
@@ -47,12 +47,12 @@ async def statement_delete(tx, *, statement_id, username):
 
 @transaction
 async def statement_get_many(tx, *, query_string, n_results=10, skip=0, tags=()):
-    await tx.run("""CALL db.index.fulltext.awaitEventuallyConsistentIndexRefresh()
+    await tx.run("""CALL controller.index.fulltext.awaitEventuallyConsistentIndexRefresh()
                     """)
 
     result = await tx.run("""
                 CALL{
-                    CALL db.index.fulltext.queryNodes($index, $query_string,{
+                    CALL controller.index.fulltext.queryNodes($index, $query_string,{
                         skip:$skip,
                         limit:$limit
                     }) YIELD node, score
@@ -381,7 +381,7 @@ async def statement_calculate_truth(tx):
             parent_id and number_of_known_weights:
         3. generate truth for node, delete connections used for the truth generation
 
-        4. save truth to db and return connections of schema {weight, parent_id, weighted_truth}
+        4. save truth to controller and return connections of schema {weight, parent_id, weighted_truth}
 
         5. if there are connections returned start from 2.
 

@@ -1,4 +1,4 @@
-from db.core import transaction
+from controller.core import transaction
 
 
 @transaction

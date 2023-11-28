@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-import db
+import controller
 import load_env
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -30,7 +30,7 @@ def get_password_hash(password):
 
 
 async def authenticate_user(username, password):
-    hashed_pw = await db.user_get_hashed_password(username=username)
+    hashed_pw = await controller.user_get_hashed_password(username=username)
     if not hashed_pw:
         return False
     if not verify_password(password, hashed_pw):
@@ -68,7 +68,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     except JWTError as e:
         raise credentials_exception
 
-    db_user = await db.user_get(username=username)
+    db_user = await controller.user_get(username=username)
 
     if db_user is None:
         raise credentials_exception
