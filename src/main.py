@@ -1,19 +1,16 @@
 import dotenv
+
+import db
 import host_infos
-import controller
 import api
 import security.jwt_auth
 
 
 def setup():
-
     host_infos.print_host_name()  # show host name
     dotenv.load_dotenv(override=True)
-    controller.init()
+    db.init()
     security.init()
-
-def test():
-    pass  # Test enviroment and connections
 
 
 def start():
@@ -21,11 +18,10 @@ def start():
 
 
 def teardown():
-    controller.close()
+    db.close()
 
 
 if __name__ == '__main__':
     setup()
-    test()
     start()
     teardown()

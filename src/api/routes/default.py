@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import HTMLResponse
 from typing_extensions import Literal
 
-from controller import user_report, user_modify_star, statement_get_context, statement_calculate_truth
+from db import user_report, user_modify_star, statement_get_context, statement_calculate_truth
 from api.models import *
 from security import get_new_access_token, get_optional_user, get_current_active_user
 

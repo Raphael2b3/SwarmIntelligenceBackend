@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from controller.core import transaction
+from db.core import transaction
 
 
 @transaction

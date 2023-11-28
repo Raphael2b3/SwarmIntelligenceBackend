@@ -1,13 +1,8 @@
 import asyncio
 
-import dotenv
-
-import load_env
-import controller
 import api.routes.users as userroute
 import api.routes.statements as statementroute
 import api.routes.connections as connectionroute
-import security
 
 # watch("neo4j", out=sys.stdout)
 
@@ -91,16 +86,11 @@ async def vote_all_connections(connection_ids):
 
 
 async def _start():
-    controller.init()
-    security.init()
-
     await create_all_user_user()
     stm_ids = await create_all_statements()
     await vote_all_statements(stm_ids)
     ctn_ids = await create_all_connections(stm_ids)
     await vote_all_connections(ctn_ids)
-
-    await controller.close()
 
 
 def run():

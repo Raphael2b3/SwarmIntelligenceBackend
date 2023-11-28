@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from controller import user_create, user_delete, user_change_password
+from db import user_create, user_delete, user_change_password
 from api.models import *
 from security.jwt_auth import get_current_active_user, get_password_hash, authenticate_user
 
