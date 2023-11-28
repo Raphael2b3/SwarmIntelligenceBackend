@@ -2,6 +2,12 @@ from typing import TypeVar, Generic
 
 from pydantic import BaseModel
 
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 T = TypeVar('T')
 
 

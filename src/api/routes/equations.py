@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from db import statement_create, statement_delete, statement_get_many, statement_get_context, \
     statement_vote, statement_modify_tag
 from security import get_current_active_user, get_optional_user
-
+from models import *
 router = APIRouter(prefix="/equation")
 
 

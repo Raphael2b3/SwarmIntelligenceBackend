@@ -14,7 +14,7 @@ ALGORITHM: str = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200
 
 
-def init(path_to_env="./.env"):
+def init(path_to_env=".env"):
     global HOST, PORT, DB_DATABASE, DB_PASSWORD, DB_CONNECTION_STRING, DB_USERNAME, ALGORITHM, \
         ACCESS_TOKEN_EXPIRE_MINUTES, __SECRET_KEY
 

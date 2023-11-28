@@ -1,6 +1,5 @@
 from uuid import uuid4
 
-from models.responses import Response
 from db.core import transaction
 
 
@@ -16,7 +15,7 @@ async def tag_create(tx, *, tag, username):
     success = await r.value()
     log = "tags created successfully" if success else "Error: Tag already exists"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction

@@ -1,7 +1,7 @@
 import asyncio
 
 from src import env
-from db.core import Database as Db
+import db
 import api.routes.users as userroute
 import api.routes.statements as statementroute
 import api.routes.connections as connectionroute
@@ -87,11 +87,12 @@ async def vote_all_connections(connection_ids):
                                          body=connectionroute.RequestConnectionVote(id=con_id, value=val))
 
 
-async def main():
+async def _start(path_to_env):
     print("db instance:", env.DB_CONNECTION_STRING)
 
     try:
-        await Db.init()
+        env.init(path_to_env)
+        db.init(database=env.DB_DATABASE, auth=(env.DB_USERNAME, env.DB_PASSWORD), uri=env.DB_CONNECTION_STRING)
         await create_all_user_user()
         stm_ids = await create_all_statements()
         await vote_all_statements(stm_ids)
@@ -99,11 +100,13 @@ async def main():
         await vote_all_connections(ctn_ids)
     except Exception as e:
         print(e)
-        async with Db.session() as s:
-            pass  # await s.run("match (a) detach delete a")
     finally:
-        await Db.close()
+        await db.close()
+
+
+def run(path_to_env):
+    asyncio.run(_start(path_to_env))
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    run(".env")

@@ -1,5 +1,4 @@
 from db.core import transaction
-from models.responses import Response
 
 
 @transaction
@@ -23,4 +22,4 @@ async def equation_get_many(tx, *, query, limit=10, skip=0):
                         
                 """, id=query, limit=limit, skip=skip)
 
-    return Response(message="200", value=[dict(record) for record in await result.fetch(limit)])
+    return {"message": "200", "value": [dict(record) for record in await result.fetch(limit)]}

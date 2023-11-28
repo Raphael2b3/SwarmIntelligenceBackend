@@ -1,9 +1,5 @@
 from db.core import transaction
-
-from models import User
-
-from models.responses import Response
-
+from models import *
 
 @transaction
 async def user_create(tx, *, username, hashed_password):
@@ -24,7 +20,7 @@ async def user_create(tx, *, username, hashed_password):
 
         log = "user created successfully" if success else "Error: Fatal Internal Error"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction
@@ -37,7 +33,7 @@ async def user_delete(tx, username):
     success = await r.value()
     log = "user deleted successfully" if success else "Error: you are not the User"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction
@@ -67,7 +63,7 @@ async def user_modify_star(tx, *, username, object_id, _type="Tag|Statement|User
     success = await r.value()
     log = "star modified successfully" if success else "Error: Tag|Statement|User may not exist"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction
@@ -85,7 +81,7 @@ async def user_report(tx, *, object_id, reason="", _type="Tag|Statement|User", )
     success = await r.value()
     log = "reported successfully" if success else "Error: id may not exist"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction
@@ -96,7 +92,7 @@ async def user_get(tx, *, username):
         """, username=username)
     try:
         r = await result.single()
-        return User(**r)
+        return r
     except Exception as e:
         print(e)
         return None
@@ -113,4 +109,4 @@ async def user_change_password(tx, *, username, password):
     success = await result.value()
     log = "password changed successfully " if success else "Error: You are not the User"
     print(log)
-    return Response(message=log)
+    return {"message": log}

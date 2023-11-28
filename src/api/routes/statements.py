@@ -2,11 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from db.core import Database as Db
-from db.transactions import statement_create_tx, statement_delete_tx, statement_get_many_tx, statement_get_context_tx, \
-    statement_vote_tx, statement_modify_tag_tx
-from models import User, Statement, RequestStatementSearch, RequestStatementCreate, RequestTagSet, RequestStatementVote
-from models.responses import Response
+from db import statement_create, statement_delete, statement_get_many, statement_get_context, \
+    statement_vote, statement_modify_tag
+
+from models import *
 from security.jwt_auth import get_current_active_user, get_optional_user
 
 router = APIRouter(prefix="/statement", )
@@ -14,30 +13,24 @@ router = APIRouter(prefix="/statement", )
 
 @router.post("/search", response_model=Response[list[Statement]])
 async def get(current_user: Annotated[User, Depends(get_optional_user)], body: RequestStatementSearch):
-    print(f"GET STATEMENT \nBy: {current_user}\nBody: {body}")
-    async with Db.session() as session:
-        result = await session.execute_read(statement_get_many_tx, query_string=body.q, n_results=body.results,
-                                            skip=body.skip, tags=body.tags)
+    result = await statement_get_many(query_string=body.q, n_results=body.results,
+                                      skip=body.skip, tags=body.tags)
     return result
 
 
 @router.post("/", response_model=Response[Statement])
 async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
-    print(f"CREATE STATEMENT \nBy: {current_user}\nBody: {body}")
-    async with Db.session() as session:
-        r = await session.execute_write(statement_create_tx, text=body.value,
-                                        username=current_user.username)
+    r = await statement_create(text=body.value,
+                               username=current_user.username)
     return r
 
 
 @router.delete("/", response_model=Response)
 async def delete(
         current_user: Annotated[User, Depends(get_current_active_user)],
-        id:str):
-    print(f"DELETE STATEMENT \nBy: {current_user}\nBody: {body}")
-    async with Db.session() as session:
-        r = await session.execute_write(statement_delete_tx, statement_id=id,
-                                        username=current_user.username)
+        id: str):
+    r = await statement_delete(statement_id=id,
+                               username=current_user.username)
     return r
 
 
@@ -45,11 +38,9 @@ async def delete(
 async def modify_tag(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestTagSet):
-    print(f"MODIFY TAG \nBy: {current_user}\nBody: {body}")
-    async with Db.session() as session:
-        r = await session.execute_write(statement_modify_tag_tx,
-                                        username=current_user.username,
-                                        statement_id=body.id, tags=body.tags)
+    r = await statement_modify_tag(
+        username=current_user.username,
+        statement_id=body.id, tags=body.tags)
     return r
 
 
@@ -57,10 +48,7 @@ async def modify_tag(
 async def vote(
         current_user: Annotated[User, Depends(get_current_active_user)],
         body: RequestStatementVote):
-    print(f"VOTE STATEMENT \nBy: {current_user}\nBody: {body}")
-    async with Db.session() as session:
-        r = await session.execute_write(statement_vote_tx,
-                                        username=current_user.username,
-                                        statement_id=body.id, vote=body.value)
+    r = await statement_vote(
+        username=current_user.username,
+        statement_id=body.id, vote=body.value)
     return r
-

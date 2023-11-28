@@ -1,8 +1,5 @@
 from uuid import uuid4
-
 from neo4j import AsyncResult
-
-from models.responses import Response
 from db.core import transaction
 
 
@@ -37,7 +34,7 @@ async def connection_create(tx, *, stop_id, start_id, is_support, username):
     log = "connection created successfully" if success and success[
         "created"] else "Error: statement may not exist, connection already exists or argument cicle"
     print(log)
-    return Response[str](message=log, value=success["id"] if success else None)
+    return {"message": log, "value": success["id"] if success else None}
 
 
 @transaction
@@ -52,7 +49,7 @@ async def connection_delete(tx, *, connection_id, username):
     success = await r.value()
     log = "connection deleted successfully" if success else "Error: connection may not exist, you are not creator of connection"
     print(log)
-    return Response(message=log)
+    return {"message": log}
 
 
 @transaction
@@ -67,4 +64,4 @@ async def connection_weight(tx, *, connection_id, weight, username):
     success = await r.value()
     log = "connection weighted successfully" if success else "Error: connection may not exist"
     print(log)
-    return Response(message=log)
+    return {"message": log}

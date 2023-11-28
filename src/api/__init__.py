@@ -1,2 +1,2 @@
-from swarmintelligence import run
+from .swarmintelligence import run
 

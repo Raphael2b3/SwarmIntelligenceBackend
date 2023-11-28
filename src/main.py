@@ -29,7 +29,3 @@ if __name__ == '__main__':
     test()
     start()
     teardown()
-
-
-
-

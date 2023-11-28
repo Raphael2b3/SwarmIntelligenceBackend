@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
-import settings
+from . import settings
 
 driver: AsyncDriver
 initialized = False
@@ -8,6 +8,7 @@ initialized = False
 
 def init(*, uri, auth, database):
     global driver, initialized
+
     settings.pass_settings(uri=uri, auth=auth, database=database)
     driver = AsyncGraphDatabase.driver(uri=settings.URI, auth=settings.AUTH, database=settings.DATABASE)
     initialized = True
@@ -23,12 +24,14 @@ async def session() -> AsyncSession:
 
 
 def transaction(func):
-    if not initialized:
-        raise Exception("db is not initialized, call db.init(...)")
 
     async def wrapper(**kwargs):
+        global initialized
+        if not initialized:
+            raise Exception("db is not initialized, call db.init(...)")
+
         async with session() as se:
-            return se.execute_write(func, **kwargs)
+            return await se.execute_write(func, **kwargs)
 
     return wrapper
 
