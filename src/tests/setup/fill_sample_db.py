@@ -1,6 +1,6 @@
 import asyncio
 
-from src import env
+import env
 import db
 import api.routes.users as userroute
 import api.routes.statements as statementroute
