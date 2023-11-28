@@ -1,22 +1,30 @@
+import os
 from contextlib import asynccontextmanager
 from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
-from . import settings
+
+import load_env
+
+
+class Index:
+    tagsFullText = "TagsFulltext"
+    statementsFullText = "StatementsFulltext"
+
 
 driver: AsyncDriver
-initialized = False
+env: dict
 
 
-def init(*, uri, auth, database):
-    global driver, initialized
-
-    settings.pass_settings(uri=uri, auth=auth, database=database)
-    driver = AsyncGraphDatabase.driver(uri=settings.URI, auth=settings.AUTH, database=settings.DATABASE)
-    initialized = True
+def init():
+    global driver, env
+    env = load_env.load_settings_from_env("DB_CONNECTION_STRING", "DB_USERNAME", "DB_PASSWORD", "DB_DATABASE")
+    driver = AsyncGraphDatabase.driver(uri=env["DB_CONNECTION_STRING"],
+                                       auth=(env["DB_USERNAME"], env["DB_PASSWORD"]),
+                                       database=env["DB_DATABASE"])
 
 
 @asynccontextmanager
 async def session() -> AsyncSession:
-    _session = driver.session(database=settings.DATABASE)
+    _session = driver.session(database=env["DB_DATABASE"])
     try:
         yield _session
     finally:
@@ -24,19 +32,12 @@ async def session() -> AsyncSession:
 
 
 def transaction(func):
-
-    async def wrapper(**kwargs):
-        global initialized
-        if not initialized:
-            raise Exception("db is not initialized, call db.init(...)")
-
+    async def transaction_with_session(**kwargs):
         async with session() as se:
             return await se.execute_write(func, **kwargs)
 
-    return wrapper
+    return transaction_with_session
 
 
 async def close():
-    global initialized
-    initialized = False
     await driver.close()

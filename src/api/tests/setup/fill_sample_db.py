@@ -1,6 +1,8 @@
 import asyncio
 
-import env
+import dotenv
+
+import load_env
 import db
 import api.routes.users as userroute
 import api.routes.statements as statementroute
@@ -19,9 +21,9 @@ async def create_all_user_user():
 async def create_all_statements():
     statement_ids = {}
     for a in "ABCDEFG":
-        id = await statementroute.create(current_user=users[0],
+        response = await statementroute.create(current_user=users[0],
                                          body=statementroute.RequestStatementCreate(value=a, tags=[a.lower()]))
-        statement_ids[a] = id.value.id
+        statement_ids[a] = response["value"]["id"]
     return statement_ids
 
 
@@ -46,7 +48,7 @@ async def create_all_connections(statement_ids):
                                               body=connectionroute.RequestConnectionCreate(parent_id=parent,
                                                                                            child_id=child,
                                                                                            supports=supp))
-            connection_ids.append(id.value)
+            connection_ids.append(id["value"])
     return connection_ids
 
 
@@ -87,17 +89,17 @@ async def vote_all_connections(connection_ids):
                                          body=connectionroute.RequestConnectionVote(id=con_id, value=val))
 
 
-async def _start(path_to_env):
-    print("db instance:", env.DB_CONNECTION_STRING)
+async def _start():
+    db.init()
+
+    await create_all_user_user()
+    stm_ids = await create_all_statements()
+    await vote_all_statements(stm_ids)
+    ctn_ids = await create_all_connections(stm_ids)
+    await vote_all_connections(ctn_ids)
 
     try:
-        env.init(path_to_env)
-        db.init(database=env.DB_DATABASE, auth=(env.DB_USERNAME, env.DB_PASSWORD), uri=env.DB_CONNECTION_STRING)
-        await create_all_user_user()
-        stm_ids = await create_all_statements()
-        await vote_all_statements(stm_ids)
-        ctn_ids = await create_all_connections(stm_ids)
-        await vote_all_connections(ctn_ids)
+        pass
     except Exception as e:
         print(e)
     finally:
@@ -105,7 +107,8 @@ async def _start(path_to_env):
 
 
 def run(path_to_env):
-    asyncio.run(_start(path_to_env))
+    dotenv.load_dotenv(path_to_env)
+    asyncio.run(_start())
 
 
 if __name__ == '__main__':
