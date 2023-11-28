@@ -1,12 +1,12 @@
-from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from starlette.responses import HTMLResponse
 from typing_extensions import Literal
 
 from db import user_report, user_modify_star, statement_get_context, statement_calculate_truth
-from models import *
+from api.models import *
 from security import get_new_access_token, get_optional_user, get_current_active_user
 
 router = APIRouter()
@@ -41,11 +41,20 @@ async def report(controller: Literal["statement", "project", "user"],
 
 
 @router.get("/updatetruth", response_model=Response)
-async def report():
+async def update_truth():
     r = await statement_calculate_truth()
     return r
 
 
-@router.get("/")
-async def report():
-    return "Hallo was geht Lukas"
+@router.get("/",response_class=HTMLResponse)
+async def default():
+    return """<html>
+    <body>
+    See documentation:
+    <br/>
+    <a href="https://github.com/Raphael2b3/SwarmIntelligenceBackend">GitHub Repository</a>
+    <br/>
+    <a href="/docs">Find Out how this api works</a>
+    </body>
+    </html>
+    """

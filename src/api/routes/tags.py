@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from db import tag_get_many, tag_create, tag_delete
-from models import *
+from api.models import *
 from security.jwt_auth import get_current_active_user
 
 router = APIRouter(prefix="/tag", )

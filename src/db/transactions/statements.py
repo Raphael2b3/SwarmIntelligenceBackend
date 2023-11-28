@@ -1,7 +1,6 @@
 from uuid import uuid4
 
-import db.settings
-from db.core import transaction
+from db.core import transaction, Index
 from neo4j import AsyncResult, Record
 
 
@@ -65,7 +64,7 @@ async def statement_get_many(tx, *, query_string, n_results=10, skip=0, tags=())
                 }
                 RETURN DISTINCT *
             
-            """, query_string=query_string, limit=n_results, skip=skip, index=db.settings.Index.statementsFullText)
+            """, query_string=query_string, limit=n_results, skip=skip, index=Index.statementsFullText)
     log = "success"
     return {"message": log, "value": [dict(record) for record in await result.fetch(n_results)]}
 
@@ -372,6 +371,7 @@ async def statement_get_context(tx, *, statement_id, exclude_ids, username):
         log = "Error: Getting context failed statement may not exist"
     print(log)
     return {"message": log, "value": {"connections": rec["connections"], "statements": rec["statements"]}}
+
 
 @transaction
 async def statement_calculate_truth(tx):

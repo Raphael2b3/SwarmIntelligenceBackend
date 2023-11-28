@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from db import connection_create, connection_weight, connection_delete
 from security import get_current_active_user
-from models import *
+from api.models import *
 router = APIRouter(prefix="/connection")
 
 

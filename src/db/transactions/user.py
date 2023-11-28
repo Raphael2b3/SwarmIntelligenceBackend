@@ -1,5 +1,5 @@
 from db.core import transaction
-from models import *
+
 
 @transaction
 async def user_create(tx, *, username, hashed_password):
