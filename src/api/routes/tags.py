@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from db import tag_get_many, tag_create, tag_delete
 from api.models import *
-from security.jwt import get_current_active_user
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/tag", )
 
@@ -18,7 +18,7 @@ async def get(q: str = "", results: int = 10, skip: int = 0):
 
 @router.post("/", response_model=Response[Tag])
 async def create(
-        current_user: Annotated[User, Depends(get_current_active_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
         body: RequestTagCreate):
     r = await tag_create(tag=body.value,
                          username=current_user.username)
@@ -27,7 +27,7 @@ async def create(
 
 @router.delete("/", response_model=Response)
 async def delete(
-        current_user: Annotated[User, Depends(get_current_active_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
         id: str = ""):
     r = await tag_delete(tag=id,
                          username=current_user.username)

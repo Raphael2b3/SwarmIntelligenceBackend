@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from db import statement_create, statement_delete, statement_get_many, statement_vote, statement_modify_tag
 
 from api.models import *
-from security.jwt import get_current_active_user, get_optional_user
+from ..auth import get_current_user, get_optional_user
 
 router = APIRouter(prefix="/statement", )
 
@@ -18,7 +18,7 @@ async def get(current_user: Annotated[User, Depends(get_optional_user)], body: R
 
 
 @router.post("/", response_model=Response[Statement])
-async def create(current_user: Annotated[User, Depends(get_current_active_user)], body: RequestStatementCreate):
+async def create(current_user: Annotated[User, Depends(get_current_user)], body: RequestStatementCreate):
     r = await statement_create(text=body.value,
                                username=current_user.username)
     return r
@@ -26,7 +26,7 @@ async def create(current_user: Annotated[User, Depends(get_current_active_user)]
 
 @router.delete("/", response_model=Response)
 async def delete(
-        current_user: Annotated[User, Depends(get_current_active_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
         id: str):
     r = await statement_delete(statement_id=id,
                                username=current_user.username)
@@ -35,7 +35,7 @@ async def delete(
 
 @router.post("/tag", response_model=Response)
 async def modify_tag(
-        current_user: Annotated[User, Depends(get_current_active_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
         body: RequestTagSet):
     r = await statement_modify_tag(
         username=current_user.username,
@@ -45,7 +45,7 @@ async def modify_tag(
 
 @router.post("/vote", response_model=Response)
 async def vote(
-        current_user: Annotated[User, Depends(get_current_active_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
         body: RequestStatementVote):
     r = await statement_vote(
         username=current_user.username,

@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import security
 from db import user_report, user_modify_star, statement_get_context, statement_calculate_truth
 from api.models import *
-from ..auth import authenticate_user, get_optional_user
+from ..auth import authenticate_user, get_optional_user, get_current_user
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ async def get_context(current_user: Annotated[User, Depends(get_optional_user)],
 
 @router.post("/{controller}/star", response_model=Response)
 async def star(controller: Literal["statement", "project", "user"],
-               current_user: Annotated[User, Depends(get_current_active_user)],
+               current_user: Annotated[User, Depends(get_current_user)],
                body: RequestStarSet):
     r = await user_modify_star(username=current_user.username, objectid=body.id,
                                _type=controller, removestar=body.value)
