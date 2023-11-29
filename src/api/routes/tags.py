@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from db import tag_get_many, tag_create, tag_delete
 from api.models import *
-from security.jwt_auth import get_current_active_user
+from security.jwt import get_current_active_user
 
 router = APIRouter(prefix="/tag", )
 

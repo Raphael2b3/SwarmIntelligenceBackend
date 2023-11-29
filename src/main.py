@@ -1,9 +1,8 @@
 import dotenv
-
 import db
 import host_infos
 import api
-import security.jwt_auth
+import security.jwt
 
 
 def setup():

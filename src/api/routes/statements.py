@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from db import statement_create, statement_delete, statement_get_many, statement_vote, statement_modify_tag
 
 from api.models import *
-from security.jwt_auth import get_current_active_user, get_optional_user
+from security.jwt import get_current_active_user, get_optional_user
 
 router = APIRouter(prefix="/statement", )
 

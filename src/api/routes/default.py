@@ -5,16 +5,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import HTMLResponse
 from typing_extensions import Literal
 
+import security
 from db import user_report, user_modify_star, statement_get_context, statement_calculate_truth
 from api.models import *
-from security import get_new_access_token, get_optional_user, get_current_active_user
+from ..auth import authenticate_user, get_optional_user
 
 router = APIRouter()
 
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(credentials: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    return await get_new_access_token(username=credentials.username, password=credentials.password)
+    credential = await authenticate_user(credentials.username, credentials.password)
+    if credential:
+        return await security.get_new_access_token(credentials=credential)
 
 
 @router.post("/context", response_model=Response[Context])
@@ -46,7 +49,7 @@ async def update_truth():
     return r
 
 
-@router.get("/",response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def default():
     return """<html>
     <body>
