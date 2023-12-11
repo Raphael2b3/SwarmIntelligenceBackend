@@ -82,6 +82,34 @@ W_k(i) = R*v(k) + (1-R)*summe[ i in C_k: w_c(i) * g_k(i) ]/ summe[ i in C_k, g_k
 
 ---
 
+## Models
+
+Get Statement:
+{
+  - id
+  - text
+  - tags
+  - [userdecision]
+  - [user_is_creator]
+}
+
+Get Connection:
+{
+  - id
+  - argument
+  - thesis
+  - [userdecision]
+  - [user_is_creator]
+}
+
+Get Statement Context:
+{
+  - statements: list[Get Statement]
+  - connections: list[Get Connection]
+}
+
+
 ## Routen
 
-See doc.html
+
+
