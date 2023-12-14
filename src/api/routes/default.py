@@ -7,8 +7,8 @@ from typing_extensions import Literal
 
 import security
 from db import user_report, user_modify_star, statement_get_context, statement_calculate_truth
-from api.models import *
-from ..auth import authenticate_user, get_optional_user, get_current_user
+from models import *
+from security.auth import authenticate_user, get_optional_user, get_current_user
 
 router = APIRouter()
 

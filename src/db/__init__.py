@@ -1,4 +1,4 @@
-from .core import init, close
+from .core import close
 from .transactions.connections import *
 from .transactions.tags import *
 from .transactions.user import *

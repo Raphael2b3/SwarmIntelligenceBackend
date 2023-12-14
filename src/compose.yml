@@ -1,0 +1,5 @@
+services:
+  api:
+    build: .
+    ports:
+      - ${API_PORT}:${API_PORT}

@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from db import user_create, user_delete, user_change_password
-from api.models import *
-from ..auth import get_current_user, authenticate_user
+from models import *
+from security.auth import get_current_user, authenticate_user
 from security import pwd_context
 router = APIRouter(prefix="/user", )
 

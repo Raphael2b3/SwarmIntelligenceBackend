@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from db import equation_get_many
-from security import get_optional_user
-from api.models import *
+from security.auth import get_optional_user
+from models import *
 router = APIRouter(prefix="/equation")
 
 

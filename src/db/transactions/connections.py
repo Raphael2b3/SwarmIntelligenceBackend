@@ -14,8 +14,7 @@ async def connection_create(tx, *, stop_id, start_id, is_support, username):
     OPTIONAL MATCH (a)-[:HAS]->(c:Connection)-[:SUPPORTS|OPPOSES]->(b)
     CALL{{
             WITH c
-            WITH c
-            WHERE c IS NOT NULL
+            WITH c WHERE c IS NOT NULL    
             RETURN c.id as id,  FALSE as created 
         UNION
             WITH *

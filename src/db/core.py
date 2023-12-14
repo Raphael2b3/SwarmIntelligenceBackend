@@ -11,20 +11,19 @@ class Index:
 
 
 driver: AsyncDriver
-env: dict
+uri, username, password, database = load_env.load_settings_from_env("DB_CONNECTION_STRING", "DB_USERNAME",
+                                                                    "DB_PASSWORD", "DB_DATABASE")
+driver = AsyncGraphDatabase.driver(uri=uri,
+                                   auth=(username, password),
+                                   database=database)
 
 
-def init():
-    global driver, env
-    env = load_env.load_settings_from_env("DB_CONNECTION_STRING", "DB_USERNAME", "DB_PASSWORD", "DB_DATABASE")
-    driver = AsyncGraphDatabase.driver(uri=env["DB_CONNECTION_STRING"],
-                                       auth=(env["DB_USERNAME"], env["DB_PASSWORD"]),
-                                       database=env["DB_DATABASE"])
+#
 
 
 @asynccontextmanager
 async def session() -> AsyncSession:
-    _session = driver.session(database=env["DB_DATABASE"])
+    _session = driver.session(database=database)
     try:
         yield _session
     finally:

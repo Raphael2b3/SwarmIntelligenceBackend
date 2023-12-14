@@ -1,26 +1,13 @@
-import dotenv
-import db
 import host_infos
 import api
-import security.jwt
+import db
 
-
-def setup():
+"""
+api and db are implicitly loading env vars from .env file.
+"""
+if __name__ == '__main__':
     host_infos.print_host_name()  # show host name
-    dotenv.load_dotenv(override=True)
-    db.init()
-    security.init()
 
-
-def start():
     api.run()
 
-
-def teardown():
     db.close()
-
-
-if __name__ == '__main__':
-    setup()
-    start()
-    teardown()

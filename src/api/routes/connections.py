@@ -1,8 +1,8 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from db import connection_create, connection_weight, connection_delete
-from ..auth import get_current_user
-from api.models import *
+from security.auth import get_current_user
+from models import *
 router = APIRouter(prefix="/connection")
 
 
