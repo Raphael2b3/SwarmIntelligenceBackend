@@ -1,5 +1,6 @@
 services:
   api:
+    container_name: swarmintelligencebackend
     build: .
     ports:
       - ${API_PORT}:${API_PORT}
