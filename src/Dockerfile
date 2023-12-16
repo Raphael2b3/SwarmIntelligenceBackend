@@ -1,15 +1,7 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
-
-RUN apk add gcc
-
-RUN apk add libffi-dev
-
-RUN wget -O init.sh https://sh.rustup.rs
-RUN sh init.sh -y
-RUN cp $HOME/.cargo/bin/* /usr/local/bin
 
 RUN pip install --upgrade pip
 
