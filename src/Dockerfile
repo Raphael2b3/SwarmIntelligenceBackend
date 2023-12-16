@@ -1,15 +1,9 @@
-FROM python:latest
+FROM python:3.12-alpine
 LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
-RUN apt install curl -y
-
-RUN curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
-
 RUN pip install --upgrade pip
-
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 RUN pip install -r requirements.txt
 
