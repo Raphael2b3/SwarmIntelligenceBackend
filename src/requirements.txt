@@ -1,13 +1,12 @@
-cryptography
 neo4j
 python-dotenv
 passlib
-fastapi[all]
 python-jose[cryptography]
-uvicorn[standard]
 passlib[bcrypt]
 pytest
 pytest-asyncio
 pytest-order
 starlette
 pydantic
+fastapi[all]
+uvicorn[standard]
