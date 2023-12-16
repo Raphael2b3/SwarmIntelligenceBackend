@@ -3,10 +3,11 @@ LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
-
 RUN apk add build-base
 
 RUN apk add libffi-dev
+
+RUN curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 RUN pip install --upgrade pip
 
