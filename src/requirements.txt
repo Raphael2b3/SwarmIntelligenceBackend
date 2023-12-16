@@ -1,7 +1,7 @@
+cryptography
 neo4j
 python-dotenv
 passlib
-pydantic
 fastapi[all]
 python-jose[cryptography]
 uvicorn[standard]
@@ -10,3 +10,4 @@ pytest
 pytest-asyncio
 pytest-order
 starlette
+pydantic
