@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.12
 LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
