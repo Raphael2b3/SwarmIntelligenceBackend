@@ -5,7 +5,7 @@ ADD requirements.txt ./
 
 RUN pip install --upgrade pip
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 RUN pip install -r requirements.txt
 
