@@ -7,7 +7,11 @@ RUN apk add build-base
 
 RUN apk add libffi-dev
 
-RUN curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh
+RUN apk add curl
+
+RUN sh --help
+
+RUN  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh | y
 
 RUN pip install --upgrade pip
 
