@@ -3,7 +3,6 @@ LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
-
 RUN apk add gcc
 
 RUN apk add libffi-dev
