@@ -3,7 +3,10 @@ LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
+
 RUN apk add build-base
+
+RUN apk add libffi-dev
 
 RUN pip install --upgrade pip
 
