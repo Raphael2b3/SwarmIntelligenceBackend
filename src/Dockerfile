@@ -7,9 +7,9 @@ RUN apk add gcc
 
 RUN apk add libffi-dev
 
-RUN apk add curl
-
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN wget -O init.sh https://sh.rustup.rs
+RUN sh init.sh -y
+RUN cp $HOME/.cargo/bin/* /usr/local/bin
 
 RUN pip install --upgrade pip
 
