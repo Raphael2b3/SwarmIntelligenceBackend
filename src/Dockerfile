@@ -3,11 +3,10 @@ LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
-RUN pacman -S gcc
 
-RUN pacman -S libffi-dev
+RUN apt-get update
 
-RUN pacman -S curl
+RUN apt-get install build-essential libffi-dev curl -y
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
