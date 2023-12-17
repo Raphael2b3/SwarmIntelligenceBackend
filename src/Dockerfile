@@ -3,11 +3,11 @@ LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
 
-RUN apk add gcc
+RUN pacman -S gcc
 
-RUN apk add libffi-dev
+RUN pacman -S libffi-dev
 
-RUN apk add curl
+RUN pacman -S curl
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
