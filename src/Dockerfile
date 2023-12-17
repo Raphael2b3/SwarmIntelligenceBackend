@@ -1,23 +1,21 @@
-FROM python:3.12-slim
+FROM rust:slim
 LABEL authors="Raphael2b3"
+
 
 ADD requirements.txt ./
 
 
 RUN apt-get update
 
-RUN apt-get install build-essential libffi-dev curl -y
+RUN apt-get install -y python3-full
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN python3 -m venv .venv
 
-RUN pip install --upgrade pip
+RUN .venv/bin/python -m pip install --upgrade pip
 
-RUN pip install -r requirements.txt
+RUN .venv/bin/python -m pip install -r requirements.txt
 
-RUN rm -f ./requirements.txt
+ADD . .
 
-ADD . ./src
 
-WORKDIR ./src
-
-CMD ["python", "main.py"]
+CMD [".venv/bin/python", "main.py"]
