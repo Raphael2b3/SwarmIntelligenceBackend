@@ -1,7 +1,15 @@
-FROM python:3.12
+FROM python:3.12-slim
 LABEL authors="Raphael2b3"
 
 ADD requirements.txt ./
+
+RUN apk add gcc
+
+RUN apk add libffi-dev
+
+RUN apk add curl
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 RUN pip install --upgrade pip
 
